@@ -1,0 +1,77 @@
+/* ════════════════════════════════════════════
+   FIRST-LOAD INTRO MOTION
+   ════════════════════════════════════════════ */
+.intro {
+  position: fixed; inset: 0; z-index: 11000;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  background: #070b16;
+  transition: opacity 700ms var(--ease-smooth), transform 800ms var(--ease-smooth);
+}
+.intro__sky {
+  position: absolute; inset: -10%;
+  background:
+    radial-gradient(40% 32% at 22% 24%, rgba(79,209,197,0.22), transparent 70%),
+    radial-gradient(42% 34% at 80% 32%, rgba(139,92,246,0.24), transparent 70%),
+    radial-gradient(46% 36% at 50% 84%, rgba(96,165,250,0.18), transparent 72%),
+    linear-gradient(180deg, #0a1024, #070b16);
+  filter: blur(8px);
+  animation: intro-sky-drift 6s var(--ease-smooth) infinite alternate;
+}
+@keyframes intro-sky-drift { from { transform: scale(1) translateY(0); } to { transform: scale(1.08) translateY(-2%); } }
+
+.intro__center { position: relative; z-index: 2; text-align: center; padding: 0 24px; }
+.intro__word {
+  font: var(--fw-regular) clamp(26px, 5.5vw, 56px)/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.18em;
+  color: #F5F7FA;
+  display: inline-flex; flex-wrap: wrap; justify-content: center;
+}
+.intro__char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.5em);
+  animation: intro-char 620ms var(--ease-out) forwards;
+}
+@keyframes intro-char { to { opacity: 1; transform: translateY(0); } }
+
+.intro__line {
+  display: block;
+  width: 0; height: 2px; margin: clamp(16px, 3vh, 28px) auto 0;
+  background: linear-gradient(90deg, transparent, var(--color-accent), var(--color-stage-rem), transparent);
+  animation: intro-line 900ms var(--ease-out) 600ms forwards;
+}
+@keyframes intro-line { to { width: min(280px, 70vw); } }
+
+.intro__tag {
+  margin-top: clamp(14px, 2.4vh, 22px);
+  font: var(--fw-medium) clamp(13px, 1.6vw, 16px) var(--font-sans);
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.66);
+  opacity: 0;
+  animation: intro-tag 700ms var(--ease-out) 900ms forwards;
+}
+@keyframes intro-tag { to { opacity: 1; } }
+
+/* Aurora sweep across the wordmark */
+.intro__sweep {
+  position: absolute; top: 0; bottom: 0; left: -30%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.10), rgba(79,209,197,0.14), transparent);
+  filter: blur(8px);
+  transform: skewX(-12deg);
+  animation: intro-sweep 1400ms var(--ease-smooth) 700ms;
+  z-index: 3;
+}
+@keyframes intro-sweep { from { left: -30%; } to { left: 130%; } }
+
+/* Exit: lift the whole overlay up + fade */
+.intro--out { opacity: 0; transform: translateY(-4%); pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__sky, .intro__char, .intro__line, .intro__tag, .intro__sweep { animation: none !important; }
+  .intro__char { opacity: 1; transform: none; }
+  .intro__line { width: min(280px, 70vw); }
+  .intro__tag { opacity: 1; }
+  .intro { transition: opacity 200ms linear; }
+}

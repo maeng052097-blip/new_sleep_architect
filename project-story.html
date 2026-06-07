@@ -1,0 +1,3050 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project Story — Sleep Architect</title>
+  <meta name="description" content="Sleep Architect Robot 포트폴리오 프로젝트의 과정과 배운 점 — 컨셉 정의부터 실시간 기능 구현까지." />
+  <meta name="robots" content="index, follow" />
+
+  <style data-from="tokens.css">
+/* ============================================================
+   Sleep Architect — Design Tokens (v1.4)
+   Source: PLAN.md §10 Step 2 / IA.md / POLISH.md
+   사용 원칙:
+     1. 모든 색·간격·폰트·곡률은 본 파일의 변수만 사용
+     2. 컴포넌트 내 매직 넘버 금지
+     3. 다크 모드가 기본. 라이트 모드는 [data-theme="light"]에서 오버라이드
+   업데이트 (v1.4 → POLISH 적용):
+     ‧ 한글 줄바꿈 정책 — word-break: keep-all / text-wrap balance·pretty
+     ‧ 커스텀 ::selection 색
+     ‧ 커스텀 스크롤바 (트랙 — 썸 — hover 강조)
+     ‧ 그레인 오버레이 토큰: 인라인 SVG turbulence, opacity 0.03
+   ============================================================ */
+
+:root {
+  /* ─────────────── 색상: 베이스 (다크) ─────────────── */
+  --color-bg:               #0A0E1A;  /* 페이지 배경 (deep night) */
+  --color-surface:          #131829;  /* 카드 표면 */
+  --color-surface-elevated: #1A2138;  /* 호버/포커스된 카드 */
+  --color-border:           #232B45;  /* 분리선 */
+  --color-border-strong:    #344063;  /* 강조 테두리 */
+
+  /* ─────────────── 색상: 텍스트 ─────────────── */
+  --color-text:             #F5F7FA;  /* 본문/제목 */
+  --color-text-secondary:   #A0AEC0;  /* 보조 텍스트 */
+  --color-text-muted:       #6B7B95;  /* 캡션, 라벨 */
+  --color-text-on-accent:   #0A0E1A;  /* 액센트 배경 위 텍스트 */
+
+  /* ─────────────── 색상: 액센트 (브랜드) ─────────────── */
+  --color-accent:           #4FD1C5;  /* 신뢰/평온 — 1차 CTA */
+  --color-accent-hover:     #5EEAD4;
+  --color-accent-soft:      rgba(79, 209, 197, 0.12);
+
+  /* ─────────────── 색상: 수면 단계 (도메인 컬러) ─────────────── */
+  --color-stage-awake:      #FBBF24;  /* 깨어 있음 — amber */
+  --color-stage-n1:         #93C5FD;  /* 얕은 수면 진입 — light blue */
+  --color-stage-n2:         #60A5FA;  /* 얕은 수면 */
+  --color-stage-n3:         #1E3A8A;  /* 깊은 수면 — deep blue */
+  --color-stage-rem:        #8B5CF6;  /* REM — purple */
+
+  /* ─────────────── 색상: 상태 ─────────────── */
+  --color-success:          #10B981;
+  --color-warning:          #F59E0B;
+  --color-danger:           #FF6B6B;
+  --color-info:             #60A5FA;
+
+  /* ─────────────── 색상: 그라디언트 ─────────────── */
+  --gradient-hero:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(79, 209, 197, 0.18), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.15), transparent 60%),
+    var(--color-bg);
+  --gradient-stage-bar:
+    linear-gradient(90deg,
+      var(--color-stage-awake) 0%,
+      var(--color-stage-n1) 20%,
+      var(--color-stage-n2) 40%,
+      var(--color-stage-n3) 60%,
+      var(--color-stage-rem) 80%,
+      var(--color-stage-awake) 100%);
+
+  /* ─────────────── 타이포: 폰트 패밀리 ─────────────── */
+  --font-sans:
+    'Pretendard Variable', 'Pretendard',
+    -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono',
+    ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ─────────────── 타이포: 사이즈 (clamp = 모바일→데스크톱) ─────────────── */
+  --fs-display-1:  clamp(40px, 6vw, 72px);   /* @kind font */
+  --fs-display-2:  clamp(32px, 4.5vw, 56px); /* @kind font */
+  --fs-display-3:  clamp(24px, 3vw, 40px);   /* @kind font */
+  --fs-heading-1:  clamp(20px, 2vw, 32px);   /* @kind font */
+  --fs-heading-2:  clamp(18px, 1.6vw, 24px); /* @kind font */
+  --fs-heading-3:  clamp(16px, 1.4vw, 20px); /* @kind font */
+  --fs-body:       16px; /* @kind font */
+  --fs-body-sm:    14px; /* @kind font */
+  --fs-caption:    12px; /* @kind font */
+  --fs-mono:       14px; /* @kind font */
+
+  /* ─────────────── 타이포: 행간/자간 ─────────────── */
+  --lh-tight:    1.1;   /* @kind font */
+  --lh-snug:     1.3;   /* @kind font */
+  --lh-normal:   1.5;   /* @kind font */
+  --lh-relaxed:  1.7;   /* @kind font */
+  --ls-tight:    -0.02em; /* @kind font */
+  --ls-normal:   0; /* @kind font */
+  --ls-wide:     0.04em; /* @kind font */
+
+  /* ─────────────── 타이포: 굵기 ─────────────── */
+  --fw-regular:   400; /* @kind font */
+  --fw-medium:    500; /* @kind font */
+  --fw-semibold:  600; /* @kind font */
+  --fw-bold:      700; /* @kind font */
+  --fw-black:     800; /* @kind font */
+
+  /* ─────────────── 간격 (4px 베이스) ─────────────── */
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    20px;
+  --space-6:    24px;
+  --space-8:    32px;
+  --space-10:   40px;
+  --space-12:   48px;
+  --space-16:   64px;
+  --space-24:   96px;
+  --space-32:   128px;
+
+  /* ─────────────── 곡률 ─────────────── */
+  --radius-xs:    4px;
+  --radius-sm:    8px;
+  --radius-md:    12px;
+  --radius-lg:    16px;
+  --radius-xl:    24px;
+  --radius-2xl:   32px;
+  --radius-full:  9999px;
+
+  /* ─────────────── 그림자 ─────────────── */
+  --shadow-soft:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lifted:
+    0 4px 8px rgba(0, 0, 0, 0.25),
+    0 12px 32px rgba(0, 0, 0, 0.2);
+  --shadow-glow:
+    0 0 0 1px var(--color-accent-soft),
+    0 0 24px rgba(79, 209, 197, 0.25);
+  --shadow-glow-rem:
+    0 0 0 1px rgba(139, 92, 246, 0.25),
+    0 0 24px rgba(139, 92, 246, 0.3);
+
+  /* ─────────────── 모션 (duration + easing) ─────────────── */
+  --dur-fast:    150ms; /* @kind other */
+  --dur-base:    250ms; /* @kind other */
+  --dur-slow:    500ms; /* @kind other */
+  --dur-story:   800ms; /* @kind other */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1); /* @kind other */
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1); /* @kind other */
+
+  /* ─────────────── z-index 레이어 ─────────────── */
+  --z-base:     0; /* @kind other */
+  --z-raised:   10; /* @kind other */
+  --z-sticky:   50; /* @kind other */
+  --z-overlay:  100; /* @kind other */
+  --z-modal:    1000; /* @kind other */
+  --z-toast:    2000; /* @kind other */
+  --z-tooltip:  3000; /* @kind other */
+
+  /* ─────────────── 레이아웃 ─────────────── */
+  --container-max:  1280px; /* @kind spacing */
+  --container-pad:  clamp(16px, 4vw, 64px); /* @kind spacing */
+  --section-pad-y:  clamp(64px, 12vh, 128px); /* @kind spacing */
+  --nav-h:          64px; /* @kind spacing */
+
+  /* ─────────────── v1.4 — Grain overlay ─────────────── */
+  /* 인라인 SVG turbulence. 외부 이미지 파일 없음. opacity 0.03. */
+  --grain-svg: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxODAnIGhlaWdodD0nMTgwJz48ZmlsdGVyIGlkPSduJz48ZmVUdXJidWxlbmNlIHR5cGU9J2ZyYWN0YWxOb2lzZScgYmFzZUZyZXF1ZW5jeT0nMC45JyBudW1PY3RhdmVzPScyJyBzdGl0Y2hUaWxlcz0nc3RpdGNoJy8+PGZlQ29sb3JNYXRyaXggdmFsdWVzPScwIDAgMCAwIDEgIDAgMCAwIDAgMSAgMCAwIDAgMCAxICAwIDAgMCAwLjg1IDAnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbiknLz48L3N2Zz4="); /* @kind other */
+  --grain-opacity: 0.03; /* @kind other */
+}
+
+/* ============================================================
+   라이트 모드 오버라이드
+   ============================================================ */
+[data-theme="light"] {
+  --color-bg:               #FAFBFC;
+  --color-surface:          #FFFFFF;
+  --color-surface-elevated: #F5F7FA;
+  --color-border:           #E2E8F0;
+  --color-border-strong:    #CBD5E1;
+
+  --color-text:             #0A0E1A;
+  --color-text-secondary:   #4A5568;
+  --color-text-muted:       #718096;
+  --color-text-on-accent:   #FFFFFF;
+
+  --color-accent:           #14B8A6;
+  --color-accent-hover:     #0D9488;
+  --color-accent-soft:      rgba(20, 184, 166, 0.10);
+
+  --gradient-hero:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(20, 184, 166, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(139, 92, 246, 0.08), transparent 60%),
+    var(--color-bg);
+
+  --shadow-soft:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lifted:
+    0 4px 8px rgba(15, 23, 42, 0.08),
+    0 12px 32px rgba(15, 23, 42, 0.10);
+}
+
+/* ============================================================
+   v1.4 — 전역 정책 (Layer 1·5·6)
+   ----
+   이 규칙들은 토큰과 같은 계층에서 편집됩니다 — 컴포넌트
+   CSS가 일부를 오버라이드하더라도 기본값이 여기서 출발합니다.
+   ============================================================ */
+
+/* 한글 줄바꿈 정책 */
+html { word-break: keep-all; }
+h1, h2, h3, h4, .h1, .h2, .h3 { text-wrap: balance; }
+p, li, .sub, blockquote { text-wrap: pretty; }
+
+/* 선택 색 — 액센트 soft 배경 + 본문 색 */
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+}
+
+/* 커스텀 스크롤바 (WebKit + Firefox) */
+html {
+  scrollbar-color: var(--color-border-strong) var(--color-bg);
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar      { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--color-bg); }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border: 2px solid var(--color-bg);
+  border-radius: var(--radius-full);
+  transition: background var(--dur-fast) var(--ease-smooth);
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+/* ============================================================
+   접근성 — 모션 감소 사용자
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast:  0ms; /* @kind other */
+    --dur-base:  0ms; /* @kind other */
+    --dur-slow:  0ms; /* @kind other */
+    --dur-story: 0ms; /* @kind other */
+  }
+}
+
+/* ============================================================
+   브레이크포인트 (참고용 — 컴포넌트에서 media query로 사용)
+     mobile:  0      ~ 767
+     tablet:  768    ~ 1023
+     desktop: 1024   ~ 1439
+     wide:    1440+
+   ============================================================ */
+
+</style>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bruno+Ace&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+
+  <style data-from="sa-pk/sa-pk-styles.css">
+/* ============================================================
+   Sleep Architect — Hero (Punchi-Kun Edition)
+
+   Architecture mirrors Punchi-Kun:
+     - 1440 × 1080 design canvas, transform: scale() to fit viewport
+     - 5 stage scenes stacked (only one visible per step, fade-cross)
+     - Oval orbital nav anchored bottom-center
+     - SplitText title + gradient last word
+   All colors reference tokens.css. Bruno Ace = brand wordmark + nav labels.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  height: 100%;
+}
+ul, ol { list-style: none; }
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: var(--radius-xs);
+}
+
+/* Skip link */
+.sa-pk-skip {
+  position: absolute;
+  top: -100px; left: var(--space-4);
+  z-index: 9999;
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font: var(--fw-semibold) var(--fs-body-sm) 'Bruno Ace', var(--font-sans);
+  letter-spacing: var(--ls-wide);
+  transition: top var(--dur-base) var(--ease-smooth);
+}
+.sa-pk-skip:focus { top: var(--space-4); }
+
+/* ───────── Stage (viewport-fit scaler) ───────── */
+.stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: var(--color-bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stage__canvas {
+  position: absolute;
+  width: 1440px;
+  height: 1080px;
+  transform-origin: top left;
+  z-index: 2;          /* UI sits above the full-bleed scene + aurora */
+  /* transform: scale(s); top/left set inline */
+}
+
+/* Full-bleed scene background — fills the whole viewport edge-to-edge so there
+   is no letterbox seam line beside the scaled UI. Scenes cover via slice. */
+.hero-scene-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.hero-scene-bg .scene-stack { position: absolute; inset: 0; }
+
+/* ───────── Scene container (1 active at a time) ───────── */
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-slow) var(--ease-smooth);
+}
+.scene.is-active { opacity: 1; pointer-events: auto; }
+
+/* Each scene exposes its dominant color via --stage-color */
+.scene[data-stage="awake"] { --stage-color: var(--color-stage-awake); --stage-glow: rgba(251, 191, 36, 0.55); }
+.scene[data-stage="n1"]    { --stage-color: var(--color-stage-n1);    --stage-glow: rgba(147, 197, 253, 0.55); }
+.scene[data-stage="n2"]    { --stage-color: var(--color-stage-n2);    --stage-glow: rgba(96, 165, 250, 0.55); }
+.scene[data-stage="n3"]    { --stage-color: var(--color-stage-n3);    --stage-glow: rgba(30, 58, 138, 0.65); }
+.scene[data-stage="rem"]   { --stage-color: var(--color-stage-rem);   --stage-glow: rgba(139, 92, 246, 0.55); }
+
+/* SVG scene fills full 1440×1080 */
+.scene__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Drop-shadow per paper layer */
+.paper {
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+.paper--deep {
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.5));
+}
+
+/* Star field on REM/N3 scenes */
+.scene__stars circle { fill: var(--color-text); }
+
+/* User image slot per scene (covers the entire scene) */
+.scene__slot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ───────── Color flow blob (the giant blurred ellipse behind everything) ───────── */
+.flow-blob {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  width: 1500px;
+  height: 1200px;
+  pointer-events: none;
+  z-index: 0;
+  transition: background var(--dur-story) var(--ease-smooth);
+  filter: blur(150px);
+  opacity: 0.48;
+  border-radius: 50%;
+  background: var(--stage-color, var(--color-accent));
+}
+
+/* ───────── Title block ───────── */
+.hero-title {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  transform: translate(-50%, -50%);
+  width: 1100px;
+  max-width: calc(100% - 80px);
+  text-align: center;
+  z-index: 30;
+  color: var(--color-text);
+  pointer-events: none;
+}
+.hero-title__main {
+  font: var(--fw-bold) 80px/1.05 'Bruno Ace', var(--font-sans);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.hero-title__sub {
+  margin-top: var(--space-6);
+  font: var(--fw-medium) 44px/1.15 'Bruno Ace', var(--font-sans);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  opacity: 0.92;
+}
+.hero-title__korean {
+  margin-top: var(--space-8);
+  font: var(--fw-medium) 22px/1.45 var(--font-sans);
+  color: rgba(255, 255, 255, 0.78);
+  word-break: keep-all;
+  text-wrap: pretty;
+}
+
+/* Gradient last word (solid stage-color — gradient breaks when nested chars
+   have opacity/transform set by JS, because background-clip:text doesn't
+   composite cleanly through child stacking contexts) */
+.hero-title .accent-word {
+  color: var(--stage-color, #C3F3D8);
+  display: inline-block;
+  text-shadow: 0 0 18px var(--stage-glow, rgba(195, 243, 216, 0.45));
+}
+/* Children inherit so each animated split-char keeps the stage color */
+.hero-title .accent-word .split-char,
+.hero-title .accent-word .split-space {
+  color: inherit;
+}
+
+/* SplitText character entry */
+.split-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.45em);
+  will-change: transform, opacity;
+}
+.split-space { display: inline-block; width: 0.32em; }
+.split-line  { display: block; }
+
+/* ───────── Brand wordmark ───────── */
+.wordmark {
+  position: absolute;
+  left: 50%;
+  top: 80px;
+  transform: translateX(-50%);
+  font: var(--fw-regular) 32px/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.34em;
+  color: var(--color-text);
+  z-index: 40;
+  white-space: nowrap;
+}
+
+/* ───────── Top-right meta (env stats) ───────── */
+.meta {
+  position: absolute;
+  right: 64px;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  font: var(--fw-medium) 14px/1 var(--font-mono);
+  letter-spacing: var(--ls-wide);
+  color: rgba(255, 255, 255, 0.7);
+  z-index: 40;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.meta__row { display: flex; align-items: center; gap: var(--space-2); }
+.meta__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--stage-color, var(--color-accent));
+  box-shadow: 0 0 12px var(--stage-glow);
+}
+
+/* ───────── Bottom-left timer hint ───────── */
+.hint {
+  position: absolute;
+  left: 64px;
+  bottom: 80px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--fw-medium) 12px/1 var(--font-mono);
+  letter-spacing: var(--ls-wide);
+  color: rgba(255, 255, 255, 0.55);
+  z-index: 40;
+  text-transform: uppercase;
+}
+.hint__bar {
+  width: 56px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+.hint__bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: var(--progress, 0%);
+  background: var(--color-text);
+  transition: width 100ms linear;
+}
+/* Hint as a real play/pause toggle button (WCAG 2.2.2) */
+.hint--toggle {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 6px 8px;
+  margin: -6px -8px;
+  transition: color var(--dur-fast) var(--ease-smooth);
+}
+.hint--toggle:hover { color: rgba(255,255,255,0.85); }
+.hint--toggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.hint__icon { font-size: 9px; letter-spacing: 0; }
+
+/* ───────── Bottom-right drag hint ───────── */
+.drag-hint {
+  position: absolute;
+  right: 64px;
+  bottom: 80px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font: var(--fw-medium) 12px/1 var(--font-mono);
+  letter-spacing: var(--ls-wide);
+  color: rgba(255, 255, 255, 0.55);
+  z-index: 40;
+  text-transform: uppercase;
+}
+.drag-hint kbd {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.04);
+  font: var(--fw-medium) 11px var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ───────── Orbital navbar ───────── */
+.navbar {
+  position: absolute;
+  left: 50%;
+  bottom: -40px;   /* anchor halfway off canvas like Punchi-Kun */
+  transform: translateX(-50%);
+  width: 720px;
+  height: 466px;
+  z-index: 50;
+}
+.navbar__glow {
+  position: absolute;
+  left: 50%;
+  bottom: 100px;
+  transform: translateX(-50%);
+  width: 640px;
+  height: 478px;
+  pointer-events: none;
+  opacity: 0.72;
+  filter: blur(40px);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, var(--stage-glow, rgba(255,255,255,0.6)) 0%, transparent 65%);
+  transition: background var(--dur-story) var(--ease-smooth);
+}
+.navbar__plate {
+  position: absolute;
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%);
+  width: 360px;
+  height: 220px;
+  background: radial-gradient(ellipse at 50% 70%, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 60%, transparent 100%);
+  border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+  pointer-events: none;
+}
+.navbar__orbit {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  border: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 5%, rgba(255,255,255,0.10) 0%, transparent 55%);
+  -webkit-mask: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+          mask: linear-gradient(to bottom, black 0%, black 60%, transparent 100%);
+}
+
+/* Nav item — glass orb */
+.nav-item {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.30) 100%);
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  cursor: pointer;
+  color: var(--color-text);
+  transition:
+    left var(--dur-slow) cubic-bezier(0.34, 1.56, 0.64, 1),
+    top var(--dur-slow) cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform var(--dur-base) var(--ease-smooth),
+    box-shadow var(--dur-base) var(--ease-smooth);
+  outline: none;
+}
+.nav-item__num {
+  font: var(--fw-regular) 14px/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+.nav-item__label {
+  font: var(--fw-medium) 13px/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.nav-item__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orb-color, var(--color-text));
+  box-shadow: 0 0 12px var(--orb-color, var(--color-text));
+  margin-top: 2px;
+}
+.nav-item.is-active {
+  transform: translateX(-50%) scale(1.08);
+  box-shadow:
+    0 0 0 1px var(--orb-color, var(--color-text)),
+    0 0 28px var(--orb-color, var(--color-text)),
+    0 8px 28px rgba(0,0,0,0.4);
+}
+.nav-item:hover:not(.is-active) {
+  transform: translateX(-50%) translateY(-6px) scale(1.12);
+}
+.nav-item:focus-visible {
+  box-shadow: 0 0 0 3px var(--color-accent);
+}
+
+/* Sleep stage orb tinting */
+.nav-item[data-stage="awake"] { --orb-color: var(--color-stage-awake); }
+.nav-item[data-stage="n1"]    { --orb-color: var(--color-stage-n1); }
+.nav-item[data-stage="n2"]    { --orb-color: var(--color-stage-n2); }
+.nav-item[data-stage="n3"]    { --orb-color: #93C5FD; /* lighter for legibility */ }
+.nav-item[data-stage="rem"]   { --orb-color: var(--color-stage-rem); }
+
+/* ───────── Grain (overrides shared tokens position so it covers stage) ───────── */
+.sa-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: var(--grain-svg);
+  background-size: 180px 180px;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: overlay;
+}
+
+/* ───────── Reduced motion ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .scene { transition: opacity 0ms; }
+  .nav-item { transition: none; }
+  .flow-blob, .navbar__glow { transition: none; }
+}
+
+/* ───────── Hide drag hint when --show-drag-hint toggled off ───────── */
+.stage[data-drag-hint="off"] .drag-hint { display: none; }
+
+/* ───────── Hide tweaks panel when disabled (handled by panel itself) ───────── */
+
+</style>
+  <style data-from="sa-pk/homepage.css">
+/* ============================================================
+   Sleep Architect — Homepage (scroll narrative)
+   Loaded AFTER sa-pk-styles.css. Overrides body to allow scroll,
+   makes the hero a 100vh section, and styles the narrative below.
+   All colors reference tokens.css.
+   ============================================================ */
+
+/* Re-enable vertical scroll (sa-pk-styles.css locked it for the standalone hero).
+   IMPORTANT: any `overflow` other than `visible` on <html>/<body> — including
+   `clip` — disables `position: sticky` for descendants (the robot pin). So we
+   keep html/body fully `visible` and contain horizontal overflow per-section
+   instead (see `.pr`, `.hp-container` etc., which never exceed the viewport). */
+html, body {
+  overflow: visible;
+  height: auto;
+  max-width: 100%;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { html, body { scroll-behavior: auto; } }
+
+/* ── Item 4 hardening: cross-browser + accessibility ──
+   Global focus-visible ring (keyboard accessibility) on every interactive el. */
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+/* Minimum touch target on phones (WCAG 2.5.5) for nav, dots, arrows, chips. */
+@media (max-width: 767px) and (pointer: coarse) {
+  .site-nav__link, .site-nav__cta, .cmp__marker, .gal__dot, .gal__arrow,
+  .faq__q, .price__cta, .reserve__submit, .cc__chip { min-height: 44px; }
+  .gal__arrow { width: 46px; height: 46px; }
+  .sidenav { display: none; }
+}
+/* Safari: backdrop-filter has -webkit- prefixes throughout and every blurred
+   surface carries an opaque-ish rgba fallback, so it degrades cleanly when
+   unsupported. Belt-and-suspenders for old Safari with no support at all. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .callout__card, .cmp__tag, .gal__arrow, .site-nav.is-scrolled,
+  .ben__card, .priv__card, .how__map { background-color: rgba(13, 18, 33, 0.97) !important; }
+}
+
+.hp-container {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 72px);
+  width: 100%;
+}
+
+/* Visually-hidden (screen-reader only) — for the page-level H1 */
+.sa-vh {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+/* Skip-to-content link — appears on keyboard focus */
+.sa-skip {
+  position: fixed;
+  top: -120px; left: 16px;
+  z-index: 10000;
+  padding: 12px 20px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-radius: var(--radius-md);
+  font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans);
+  transition: top var(--dur-base) var(--ease-smooth);
+}
+.sa-skip:focus { top: 16px; outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* Shared heading roles for the narrative */
+.hp-h2 {
+  font: var(--fw-bold) clamp(30px, 4.4vw, 56px)/1.12 var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.hp-sub {
+  margin-top: var(--space-4);
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: var(--lh-relaxed);
+  color: var(--color-text-secondary);
+  max-width: 52ch;
+  text-wrap: pretty;
+  word-break: keep-all;
+}
+.eyebrow {
+  display: inline-block;
+  font: var(--fw-semibold) var(--fs-caption)/1 'Bruno Ace', var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-5);
+}
+
+/* ───────── Hero as embedded 100vh section ───────── */
+.stage--embedded {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+}
+.hero-scrollcue {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font: var(--fw-medium) 11px/1 var(--font-mono);
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+.hero-scrollcue__arrow {
+  font-size: 16px;
+  animation: hp-bounce 1.7s var(--ease-smooth) infinite;
+}
+@keyframes hp-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50%      { transform: translateY(5px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-scrollcue__arrow { animation: none; } }
+
+/* ───────── Scroll-progress top bar ───────── */
+.hp-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 9000;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+.hp-progress__fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-stage-rem));
+  transition: transform 80ms linear;
+}
+
+/* ───────── Reveal fade-up ───────── */
+.reveal__item, .reveal > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-in > *, .reveal.is-in .reveal__item {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal__item, .reveal > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* ════════════════════════════════════════════
+   PRODUCT REVEAL (sticky)
+   ════════════════════════════════════════════ */
+.pr {
+  position: relative;
+  height: 460vh;           /* tall scroll track — longer = slower, smoother scrub */
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 30%, rgba(79, 209, 197, 0.06), transparent 70%),
+    var(--color-bg);
+}
+.pr__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  row-gap: clamp(12px, 2.4vh, 36px);
+  align-items: center;
+  padding-block: clamp(40px, 7vh, 88px) clamp(24px, 4vh, 48px);
+  padding-top: max(72px, clamp(40px, 7vh, 88px)); /* clear the fixed nav */
+  overflow: hidden;
+}
+.pr__head {
+  text-align: center;
+  max-width: 720px;
+  margin-inline: auto;
+  padding-inline: 24px;
+  position: relative;
+  z-index: 6;          /* always above the device/callout stage */
+}
+.pr__head .eyebrow { margin-bottom: var(--space-3); }
+.pr__title {
+  font: 700 clamp(28px, 4vw, 48px)/1.16 var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.pr__sub {
+  margin-top: var(--space-4);
+  font-size: clamp(15px, 1.4vw, 18px);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  word-break: keep-all;
+}
+
+.pr__stage {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin-inline: auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pr__device {
+  position: relative;
+  z-index: 5;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+/* Constant gentle idle float so the robot always feels alive, layered under
+   the scroll-driven transform on the parent. */
+.pr__device-float { display: inline-block; animation: pr-float 5.5s var(--ease-smooth) infinite; }
+@keyframes pr-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+@media (prefers-reduced-motion: reduce) { .pr__device-float { animation: none; } .pr__device { transition: none; } }
+/* Real product photo, masked into a soft vignette so the studio backdrop
+   melts into the dark section instead of showing a hard rectangle. */
+.pr__device-img {
+  position: relative;
+  z-index: 2;
+  width: clamp(280px, 32vw, 460px);
+  height: auto;
+  border-radius: 28px;
+  -webkit-mask: radial-gradient(120% 120% at 50% 46%, #000 52%, transparent 78%);
+          mask: radial-gradient(120% 120% at 50% 46%, #000 52%, transparent 78%);
+  filter: drop-shadow(0 30px 60px rgba(0,0,0,0.55));
+}
+.pr__device-video {
+  display: block;
+  width: clamp(180px, 20vw, 290px);
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+}
+.pr__device-glow {
+  position: absolute;
+  z-index: 1;
+  left: 50%; top: 50%;
+  width: 116%; height: 116%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 46%, var(--dev-glow, var(--color-accent)) 0%, transparent 62%);
+  opacity: 0.34;
+  filter: blur(46px);
+  transition: background var(--dur-slow) var(--ease-smooth);
+  pointer-events: none;
+}
+.device-svg { width: clamp(220px, 26vw, 340px); height: auto; }
+
+/* Device breathing + scanning pupil */
+.device-svg.is-breathing { animation: dev-breathe 5s var(--ease-smooth) infinite; }
+@keyframes dev-breathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-6px) scale(1.012); }
+}
+.device-pupil { animation: dev-scan 4s var(--ease-smooth) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes dev-scan {
+  0%, 100% { transform: translateX(-32px); opacity: 0.8; }
+  50%      { transform: translateX(32px);  opacity: 1; }
+}
+.device-eye-glow { animation: dev-pulse 4s var(--ease-smooth) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes dev-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.9; }
+}
+.device-waves path { animation: dev-wave 3.4s var(--ease-out) infinite; }
+@keyframes dev-wave {
+  0%   { opacity: 0; transform: translateY(8px); }
+  40%  { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .device-svg.is-breathing, .device-pupil, .device-eye-glow, .device-waves path { animation: none; }
+}
+
+/* Callouts */
+.callout {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-out);
+  z-index: 6;
+}
+/* Row anchors: span the full stage height so the three cards on each side
+   distribute top / center / bottom and never overlap on short viewports. */
+.callout--start { top: 0; }
+.callout--mid   { top: 50%; transform: translateY(-50%); }
+.callout--end   { bottom: 0; }
+.callout--left  { right: 60%; flex-direction: row; text-align: right; }
+.callout--right { left: 60%;  flex-direction: row-reverse; text-align: left; }
+.callout.is-shown { opacity: 1; pointer-events: auto; }
+
+.callout__card {
+  background: rgba(19, 24, 41, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  width: clamp(190px, 22vw, 250px);
+  box-shadow: var(--shadow-soft);
+}
+.callout__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.callout--left .callout__head { flex-direction: row-reverse; }
+.callout__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--callout-color);
+  box-shadow: 0 0 12px var(--callout-color);
+  align-self: center;
+}
+.callout__k {
+  font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans);
+  color: var(--color-text);
+}
+.callout__v {
+  margin-left: auto;
+  font: var(--fw-medium) var(--fs-caption) var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--callout-color);
+  font-variant-numeric: tabular-nums;
+}
+.callout--left .callout__v { margin-left: 0; margin-right: auto; }
+.callout__desc {
+  margin-top: var(--space-1);
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* connector */
+.callout__line {
+  width: clamp(28px, 5vw, 64px);
+  height: 1px;
+  background: linear-gradient(to right, var(--callout-color), transparent);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.callout--left .callout__line { background: linear-gradient(to left, var(--callout-color), transparent); }
+.callout__node {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--callout-color);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  margin-inline: -4px;
+  box-shadow: 0 0 8px var(--callout-color);
+}
+
+.pr__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  justify-content: center;
+  font: var(--fw-medium) 11px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.pr__progress-bar {
+  width: clamp(120px, 24vw, 280px);
+  height: 2px;
+  background: var(--color-border);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+}
+.pr__progress-bar::before {
+  content: "";
+  position: absolute; inset: 0;
+  width: var(--p, 0%);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-stage-rem));
+  transition: width 80ms linear;
+}
+
+/* ════════════════════════════════════════════
+   PROBLEM
+   ════════════════════════════════════════════ */
+.prob {
+  padding-block: clamp(96px, 16vh, 200px);
+  background: var(--color-bg);
+}
+.prob__wrap {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity var(--dur-story) var(--ease-out), transform var(--dur-story) var(--ease-out);
+}
+.prob__wrap.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .prob__wrap { opacity: 1 !important; transform: none !important; } }
+.prob__statement {
+  font: 700 clamp(28px, 4.2vw, 52px)/1.24 var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  text-wrap: balance;
+  word-break: keep-all;
+  max-width: 20ch;
+}
+.prob__strike {
+  position: relative;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.prob__strike::after {
+  content: "";
+  position: absolute; left: -2%; right: -2%; top: 52%;
+  height: 3px;
+  background: var(--color-danger);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-story) var(--ease-out) 400ms;
+}
+.prob__wrap.is-in .prob__strike::after { transform: scaleX(1); }
+
+.prob__cols {
+  margin-top: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: stretch;
+}
+.prob__col {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  background: var(--color-surface);
+}
+.prob__col--good {
+  border-color: color-mix(in oklab, var(--color-accent) 40%, var(--color-border));
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(79,209,197,0.08), transparent 70%),
+    var(--color-surface);
+}
+.prob__tag {
+  display: inline-block;
+  font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+.prob__tag--accent { color: var(--color-accent); }
+.prob__line {
+  font: var(--fw-semibold) clamp(17px, 1.7vw, 22px)/1.4 var(--font-sans);
+  color: var(--color-text);
+  word-break: keep-all;
+}
+
+/* ════════════════════════════════════════════
+   BEFORE / AFTER bedroom compare
+   ════════════════════════════════════════════ */
+.cmp { padding-block: clamp(96px, 16vh, 200px); }
+.cmp__head { max-width: 680px; margin-inline: auto; text-align: center; opacity: 0; transform: translateY(20px); transition: opacity var(--dur-story) var(--ease-out), transform var(--dur-story) var(--ease-out); }
+.cmp__head.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .cmp__head { opacity: 1 !important; transform: none !important; } }
+.cmp__head .hp-sub { margin-inline: auto; }
+
+.cmp__frame {
+  position: relative;
+  margin-top: clamp(36px, 6vh, 64px);
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lifted);
+  user-select: none;
+  cursor: ew-resize;
+  touch-action: pan-y;
+}
+.cmp__layer { position: absolute; inset: 0; }
+.cmp__layer--after { will-change: clip-path; }
+.cmp__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cmp__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cmp__slot { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.cmp__tag {
+  position: absolute;
+  top: var(--space-4);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  z-index: 3;
+}
+.cmp__tag--before { right: var(--space-4); background: rgba(0,0,0,0.45); color: #ffcaa0; }
+.cmp__tag--after  { left: var(--space-4);  background: rgba(0,0,0,0.45); color: var(--color-accent); }
+
+.cmp__marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 4px rgba(79,209,197,0.25), 0 4px 12px rgba(0,0,0,0.4);
+  display: inline-flex; align-items: center; justify-content: center;
+  font: var(--fw-bold) 18px/1 var(--font-sans);
+  cursor: pointer;
+  z-index: 4;
+  animation: cmp-pulse 2.4s var(--ease-smooth) infinite;
+}
+/* Hovered/focused marker jumps above its siblings so its popover isn't clipped
+   by neighbouring markers. */
+.cmp__marker:hover, .cmp__marker:focus-visible { z-index: 20; animation: none; }
+@keyframes cmp-pulse {
+  0%,100% { box-shadow: 0 0 0 4px rgba(79,209,197,0.25), 0 4px 12px rgba(0,0,0,0.4); }
+  50%     { box-shadow: 0 0 0 8px rgba(79,209,197,0.12), 0 4px 12px rgba(0,0,0,0.4); }
+}
+@media (prefers-reduced-motion: reduce) { .cmp__marker { animation: none; } }
+.cmp__pop {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 240px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font: var(--fw-medium) var(--fs-body-sm)/1.4 var(--font-sans);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lifted);
+  pointer-events: none;
+  word-break: keep-all;
+  z-index: 6;
+}
+.cmp__pop::after {
+  content: "";
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 7px solid transparent; border-top-color: var(--color-surface-elevated);
+}
+
+.cmp__divider {
+  position: absolute; top: 0; bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,0.85);
+  transform: translateX(-50%);
+  z-index: 5;
+  box-shadow: 0 0 12px rgba(0,0,0,0.5);
+}
+.cmp__handle {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  gap: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  cursor: grab;
+}
+.cmp__arrow { color: #1a1a1a; font-size: 22px; line-height: 1; font-weight: 700; }
+
+@media (max-width: 767px) {
+  .cmp__frame { aspect-ratio: 4 / 3; }
+  .cmp__pop { max-width: 180px; }
+}
+.prob__note {
+  margin-top: var(--space-3);
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-normal);
+  word-break: keep-all;
+}
+.prob__arrow {
+  align-self: center;
+  font-size: 28px;
+  color: var(--color-accent);
+}
+
+/* ════════════════════════════════════════════
+   HOW IT WORKS
+   ════════════════════════════════════════════ */
+.how {
+  padding-block: clamp(96px, 16vh, 200px);
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(139,92,246,0.06), transparent 70%),
+    var(--color-bg);
+}
+.how__head { max-width: 640px; }
+.how__flow {
+  margin-top: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+}
+.how__step {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  background: var(--color-surface);
+}
+.how__step::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border-strong), transparent);
+}
+.how__step-n {
+  font: var(--fw-regular) 13px/1 'Bruno Ace', var(--font-mono);
+  color: var(--color-accent);
+  letter-spacing: 0.1em;
+}
+.how__step-k {
+  display: block;
+  margin-top: var(--space-2);
+  font: var(--fw-medium) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.how__step-t {
+  margin-top: var(--space-4);
+  font: var(--fw-bold) clamp(20px, 2vw, 26px) var(--font-sans);
+  color: var(--color-text);
+}
+.how__step-d {
+  margin-top: var(--space-3);
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  word-break: keep-all;
+}
+.how__map {
+  margin-top: clamp(32px, 5vh, 56px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  background: var(--color-surface);
+}
+.how__map-label {
+  font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+.how__map-grid { display: grid; gap: 0; }
+.how__map-row {
+  display: grid;
+  grid-template-columns: 16px 90px 1fr;
+  gap: var(--space-4);
+  align-items: center;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.how__map-row:first-child { border-top: 0; }
+.how__map-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--mc);
+  box-shadow: 0 0 12px var(--mc);
+}
+.how__map-stage {
+  font: var(--fw-semibold) var(--fs-body-sm) 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+.how__map-env {
+  font: var(--fw-medium) var(--fs-body-sm) var(--font-mono);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ════════════════════════════════════════════
+   BENEFITS
+   ════════════════════════════════════════════ */
+.ben {
+  padding-block: clamp(96px, 16vh, 200px);
+  background: var(--color-bg);
+}
+.ben__head { text-align: center; max-width: 640px; margin-inline: auto; }
+.ben__grid {
+  margin-top: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+}
+.ben__card {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-8);
+  background: var(--color-surface);
+  text-align: center;
+  overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-smooth), border-color var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+}
+/* Aurora glow that blooms in on hover */
+.ben__card::after {
+  content: "";
+  position: absolute; left: 50%; top: -20%;
+  width: 120%; height: 80%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(79,209,197,0.18), transparent 70%);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--dur-slow) var(--ease-smooth);
+}
+.ben__card:hover {
+  transform: translateY(-8px);
+  border-color: var(--color-accent);
+  box-shadow: 0 24px 56px rgba(0,0,0,0.45), 0 0 0 1px var(--color-accent);
+}
+.ben__card:hover::after { opacity: 1; }
+/* Oversized ghost index number */
+.ben__index {
+  position: absolute; top: var(--space-4); right: var(--space-5);
+  font: 800 clamp(48px, 6vw, 84px)/1 var(--font-sans);
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--color-border-strong);
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity var(--dur-base) var(--ease-smooth), -webkit-text-stroke-color var(--dur-base) var(--ease-smooth);
+}
+.ben__card:hover .ben__index { opacity: 0.85; -webkit-text-stroke-color: var(--color-accent); }
+.ben__icon {
+  position: relative;
+  display: inline-flex;
+  width: 64px; height: 64px;
+  align-items: center; justify-content: center;
+  color: var(--color-accent);
+  margin-bottom: var(--space-5);
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.ben__card:hover .ben__icon { transform: scale(1.12) translateY(-2px); }
+.ben__icon svg { width: 48px; height: 48px; }
+/* Accent rule that draws in on reveal */
+.ben__rule {
+  display: block;
+  width: 0; height: 2px; margin: var(--space-4) auto 0;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  transition: width var(--dur-story) var(--ease-out) 200ms;
+}
+.fx-up.fx-in .ben__rule, .ben__card.fx-in .ben__rule, .reveal.is-in .ben__rule { width: 56px; }
+.ben__card:hover .ben__rule { width: 88px; }
+.ben__k {
+  display: block;
+  font: var(--fw-medium) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.ben__t {
+  margin-top: var(--space-3);
+  font: var(--fw-bold) clamp(20px, 2.2vw, 28px) var(--font-sans);
+  color: var(--color-text);
+  word-break: keep-all;
+}
+.ben__d {
+  margin-top: var(--space-3);
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  word-break: keep-all;
+}
+.ben__basis {
+  margin-top: var(--space-3);
+  font: var(--fw-medium) var(--fs-caption)/1.5 var(--font-mono);
+  letter-spacing: 0.01em;
+  color: var(--color-text-muted);
+  word-break: keep-all;
+}
+.ben__status {
+  display: inline-block;
+  margin-top: var(--space-5);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: rgba(255,255,255,0.03);
+  font: var(--fw-medium) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+.ben__method {
+  margin-top: clamp(32px, 5vh, 48px);
+  max-width: 760px; margin-inline: auto;
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-6); background: rgba(16,20,36,0.96);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.ben__method-tag {
+  align-self: flex-start;
+  font: var(--fw-bold) 11px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: var(--radius-full);
+  background: var(--color-accent-soft); color: var(--color-accent);
+}
+.ben__method p {
+  font-size: var(--fs-body-sm); line-height: var(--lh-relaxed);
+  color: var(--color-text-secondary); word-break: keep-all;
+}
+.ben__foot {
+  margin-top: clamp(32px, 5vh, 48px);
+  text-align: center;
+  font: var(--fw-medium) var(--fs-caption)/1.5 var(--font-mono);
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+  word-break: keep-all;
+}
+
+/* ════════════════════════════════════════════
+   PRIVACY (Twelve Labs trust cards)
+   ════════════════════════════════════════════ */
+.priv {
+  padding-block: clamp(96px, 16vh, 200px);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(79,209,197,0.05), transparent 70%),
+    var(--color-bg);
+}
+.priv__head { max-width: 640px; }
+.priv__docs { margin-top: var(--space-5); display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.priv__doc {
+  font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans);
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease-smooth);
+}
+.priv__doc:hover { opacity: 0.75; text-decoration: underline; text-underline-offset: 3px; }
+.priv__grid {
+  margin-top: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(14px, 1.6vw, 22px);
+}
+.priv__card {
+  position: relative;
+  display: flex;
+  gap: var(--space-5);
+  align-items: flex-start;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  background: var(--color-surface);
+  overflow: hidden;
+  transition: border-color var(--dur-base) var(--ease-smooth), background var(--dur-base) var(--ease-smooth), transform var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+}
+/* Glow sweep that crosses the card on hover */
+.priv__card::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(79,209,197,0.12) 50%, transparent 70%);
+  transform: translateX(-120%);
+  pointer-events: none;
+  transition: transform 700ms var(--ease-out);
+}
+.priv__card:hover::after { transform: translateX(120%); }
+.priv__card:hover {
+  border-color: var(--color-accent);
+  background: var(--color-surface-elevated);
+  transform: translateY(-5px);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.4), 0 0 0 1px var(--color-accent);
+}
+.priv__card--wide { grid-column: 1 / -1; }
+.priv__icon {
+  flex-shrink: 0;
+  width: 48px; height: 48px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-accent);
+  transition: transform var(--dur-base) var(--ease-spring), border-color var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+}
+.priv__card:hover .priv__icon {
+  transform: scale(1.12) rotate(-4deg);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 18px rgba(79,209,197,0.4);
+}
+.priv__icon svg { width: 28px; height: 28px; transition: stroke-dashoffset var(--dur-slow) var(--ease-out); }
+.priv__k {
+  font: var(--fw-medium) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.priv__t {
+  margin-top: var(--space-2);
+  font: var(--fw-bold) clamp(18px, 1.8vw, 22px) var(--font-sans);
+  color: var(--color-text);
+  word-break: keep-all;
+}
+.priv__d {
+  margin-top: var(--space-3);
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  word-break: keep-all;
+}
+
+/* ════════════════════════════════════════════
+   CTA
+   ════════════════════════════════════════════ */
+.cta {
+  position: relative;
+  padding-block: clamp(120px, 22vh, 260px);
+  background:
+    radial-gradient(70% 80% at 50% 50%, rgba(139,92,246,0.14), transparent 70%),
+    radial-gradient(60% 60% at 50% 40%, rgba(79,209,197,0.12), transparent 70%),
+    var(--color-bg);
+  text-align: center;
+  overflow: hidden;
+}
+.cta__bloom {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: min(900px, 90vw); height: min(560px, 70vh);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(79,209,197,0.18), rgba(139,92,246,0.10) 45%, transparent 72%);
+  filter: blur(40px);
+  pointer-events: none;
+  animation: cta-bloom 7s var(--ease-smooth) infinite alternate;
+}
+/* Sweeping light rays behind the headline, revealed when in view */
+.cta__rays {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%) scale(0.6);
+  width: 1200px; height: 1200px;
+  pointer-events: none; opacity: 0;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(79,209,197,0.06) 12deg, transparent 24deg, transparent 60deg, rgba(139,92,246,0.05) 72deg, transparent 84deg, transparent 180deg, rgba(79,209,197,0.05) 192deg, transparent 204deg, transparent 300deg, rgba(139,92,246,0.04) 312deg, transparent 324deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, transparent 62%);
+          mask: radial-gradient(circle, #000 0%, transparent 62%);
+  transition: opacity 1200ms var(--ease-out) 200ms, transform 1400ms var(--ease-out) 200ms;
+}
+.cta.is-in .cta__rays { opacity: 1; transform: translate(-50%,-50%) scale(1); animation: cta-rays-spin 40s linear infinite; }
+@keyframes cta-rays-spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cta__rays { animation: none !important; } }
+@keyframes cta-bloom { from { transform: translate(-50%,-50%) scale(0.94); opacity: 0.8; } to { transform: translate(-50%,-50%) scale(1.08); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cta__bloom { animation: none; } }
+.cta__wrap { position: relative; z-index: 1; }
+.cta__eyebrow {
+  font: var(--fw-semibold) var(--fs-caption)/1 'Bruno Ace', var(--font-mono);
+  letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-accent);
+  margin-bottom: var(--space-5);
+}
+.cta__title {
+  font: 800 clamp(40px, 7vw, 96px)/1.08 var(--font-sans);
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.cta__line { display: block; opacity: 0; transform: translateY(40px); filter: blur(8px); transition: opacity 700ms var(--ease-out), transform 800ms var(--ease-out), filter 700ms var(--ease-out); }
+.cta__line--2 { transition-delay: 180ms; }
+.cta.is-in .cta__line { opacity: 1; transform: translateY(0); filter: blur(0); }
+.cta__big { font-variant-numeric: tabular-nums; display: inline-block; }
+/* '8시간' starts large and recedes slightly as the eye lands on '1분' */
+.cta__big--from { color: var(--color-text-muted); transition: color 600ms var(--ease-smooth) 500ms; }
+.cta.is-in .cta__big--from { color: var(--color-text); }
+/* '1분' pops in with a spring scale + glow pulse */
+.cta__big--accent {
+  color: var(--color-accent);
+  text-shadow: 0 0 32px rgba(79,209,197,0.5);
+  transform: scale(0.5);
+  opacity: 0;
+  transition: transform 720ms var(--ease-spring) 560ms, opacity 500ms var(--ease-out) 560ms;
+}
+.cta.is-in .cta__big--accent { transform: scale(1); opacity: 1; animation: cta-num-pulse 2.6s var(--ease-smooth) 1.4s infinite; }
+@keyframes cta-num-pulse { 0%,100% { text-shadow: 0 0 28px rgba(79,209,197,0.45); } 50% { text-shadow: 0 0 46px rgba(79,209,197,0.8); } }
+@media (prefers-reduced-motion: reduce) {
+  .cta__line, .cta__big--from, .cta__big--accent { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; animation: none !important; }
+}
+.cta__sub {
+  margin-top: var(--space-6);
+  font-size: clamp(16px, 1.6vw, 20px);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-relaxed);
+  max-width: 48ch;
+  margin-inline: auto;
+  word-break: keep-all;
+}
+.cta__btns {
+  margin-top: clamp(28px, 4vh, 44px);
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 600ms var(--ease-out) 760ms, transform 600ms var(--ease-out) 760ms;
+}
+.cta.is-in .cta__btns { opacity: 1; transform: translateY(0); }
+.cta__eyebrow { opacity: 0; transform: translateY(12px); transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out); }
+.cta.is-in .cta__eyebrow { opacity: 1; transform: translateY(0); }
+.cta__sub { opacity: 0; transform: translateY(16px); transition: opacity 600ms var(--ease-out) 640ms, transform 600ms var(--ease-out) 640ms; }
+.cta.is-in .cta__sub { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .cta__btns, .cta__eyebrow, .cta__sub { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+.cta__btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 16px 32px;
+  border-radius: var(--radius-md);
+  font: var(--fw-semibold) var(--fs-body) var(--font-sans);
+  border: 1px solid transparent;
+  transition: transform var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth), background var(--dur-base) var(--ease-smooth);
+}
+.cta__btn--primary {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  box-shadow: var(--shadow-glow);
+}
+.cta__btn--primary:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--color-accent-soft), 0 0 32px rgba(79,209,197,0.45), 0 12px 32px rgba(0,0,0,0.25); }
+.cta__btn--ghost { border-color: var(--color-border-strong); color: var(--color-text); }
+.cta__btn--ghost:hover { transform: translateY(-2px); background: var(--color-surface-elevated); border-color: var(--color-accent); }
+
+/* ════════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════════ */
+.hp-footer {
+  border-top: 1px solid var(--color-border);
+  padding-block: clamp(48px, 8vh, 80px) var(--space-10);
+  background: var(--color-bg);
+}
+.hp-footer__inner {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-12);
+  flex-wrap: wrap;
+}
+.hp-footer__mark {
+  font: var(--fw-regular) 22px/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.18em;
+  color: var(--color-text);
+}
+.hp-footer__line {
+  margin-top: var(--space-4);
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  max-width: 42ch;
+  line-height: var(--lh-relaxed);
+  word-break: keep-all;
+}
+.hp-footer__cols { display: flex; gap: clamp(40px, 8vw, 96px); }
+.hp-footer__col { display: flex; flex-direction: column; gap: var(--space-3); }
+.hp-footer__h {
+  font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.hp-footer__col a {
+  font-size: var(--fs-body-sm);
+  color: var(--color-text-secondary);
+  transition: color var(--dur-fast) var(--ease-smooth);
+  white-space: nowrap;
+}
+.hp-footer__col a:hover { color: var(--color-accent); }
+.hp-footer__legal {
+  margin-top: clamp(40px, 6vh, 64px);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+.hp-footer__legal p {
+  font: var(--fw-medium) var(--fs-caption)/1.6 var(--font-mono);
+  color: var(--color-text-muted);
+  letter-spacing: 0.01em;
+  max-width: 64ch;
+  word-break: keep-all;
+}
+.hp-footer__copy { white-space: nowrap; }
+
+/* ───────── Tweaks quick-jump grid ───────── */
+.twk-jump { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.twk-jump__btn {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: transparent;
+  color: #fff;
+  font: var(--fw-medium) 12px var(--font-sans);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.twk-jump__btn:hover { background: rgba(255,255,255,0.12); }
+
+/* ════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════ */
+@media (max-width: 1023px) {
+  .pr { height: 300vh; }
+  .callout__card { width: clamp(150px, 30vw, 200px); }
+  .callout--left { right: 60%; }
+  .callout--right { left: 60%; }
+  .prob__cols { grid-template-columns: 1fr; }
+  .prob__arrow { transform: rotate(90deg); justify-self: center; }
+  .how__flow { grid-template-columns: 1fr; }
+  .ben__grid { grid-template-columns: 1fr; }
+  .priv__grid { grid-template-columns: 1fr; }
+  .priv__card--wide { grid-column: auto; }
+}
+/* ════════════════════════════════════════════
+   CURSOR AURORA + BACKGROUND HARMONY
+   The aurora canvas sits behind all content (z-index:-1) over the dark body.
+   Narrative sections become a translucent dark wash so the same flowing hues
+   that color the hero scenes glow through every section below — unifying the
+   formerly-jarring "vivid hero vs flat dark" seam.
+   ════════════════════════════════════════════ */
+.cursor-aurora {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Hero-contained variant: glows OVER the night-sky scenes (screen blend keeps
+   white text fully readable) so the first screen responds to the cursor too. */
+.cursor-aurora--hero {
+  position: absolute;
+  inset: 0;
+  z-index: 1;            /* above the full-bleed scene, below the UI canvas(2) */
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+/* Rich multi-hue night-sky gradient — navy deepens into indigo/violet with
+   teal-touched lower depths and a warm amber whisper, so the page reads as a
+   living gradient rather than a flat navy tone. */
+body {
+  background:
+    radial-gradient(120% 80% at 12% -10%, #243d72 0%, transparent 42%),
+    radial-gradient(110% 70% at 88% 4%, #3c2769 0%, transparent 44%),
+    radial-gradient(130% 80% at 95% 55%, #174b56 0%, transparent 40%),
+    radial-gradient(120% 80% at 5% 70%, #2f2360 0%, transparent 44%),
+    radial-gradient(150% 100% at 50% 120%, #163c5a 0%, transparent 52%),
+    linear-gradient(165deg, #121a3a 0%, #0f1534 32%, #0c1330 64%, #090f26 100%);
+  background-attachment: fixed;
+}
+
+/* ───────── Richer card surfaces (translucent + hairline) ─────────
+   Cards become slightly translucent so the page backdrop's stars/nebula glow
+   through, and each gets a top gradient hairline + soft inner sheen. This lifts
+   the narrative out of "flat dark rectangles" without adding visual noise. */
+.prob__col,
+.how__step,
+.how__map,
+.ben__card,
+.priv__card {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.035), transparent 40%),
+    rgba(16, 20, 36, 0.97) !important;
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+.prob__col::before,
+.how__step::before,
+.how__map::before,
+.ben__card::before,
+.priv__card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 30%, rgba(255,255,255,0.18) 70%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+.prob__col--good {
+  background:
+    linear-gradient(180deg, rgba(79,209,197,0.08), transparent 45%),
+    rgba(19, 24, 41, 0.66) !important;
+}
+.prob__col--good::before {
+  background: linear-gradient(90deg, transparent, rgba(79,209,197,0.5) 30%, rgba(79,209,197,0.5) 70%, transparent);
+}
+
+/* ───────── PAGE BACKDROP — one continuous night sky ─────────
+   Fixed behind everything (aurora is -1, this is -2). Carries the same stars +
+   nebula the hero scenes use, so the page reads as one deep-space gradient
+   rather than "vivid hero, then flat dark sections". */
+.page-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+}
+/* Fixed star overlay BEHIND section content (z-index:-1) but above the body
+   gradient. Section translucent washes let it show through, while opaque cards
+   and text sit on top — so shooting stars never cross over cards. Switched on
+   only after the hero. */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+}
+/* Content sits above the starfield; the opaque hero covers it on screen 1,
+   transparent sections reveal it, opaque cards block it. */
+main { position: relative; z-index: 1; }
+.site-nav, .sidenav, .legal-modal, .tweaks-root { z-index: 9000; }
+.starfield.is-on { opacity: 1; }
+.page-backdrop__stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 3px rgba(200,225,255,0.9));
+}
+/* Two layers drift in opposite directions — stars slowly passing by. */
+.page-backdrop__stars--a { animation: bd-drift-a 90s linear infinite; }
+.page-backdrop__stars--b { animation: bd-drift-b 140s linear infinite; }
+@keyframes bd-drift-a { from { transform: translateX(0); } to { transform: translateX(-3%); } }
+@keyframes bd-drift-b { from { transform: translateX(0); } to { transform: translateX(2.4%); } }
+
+/* ── Shooting stars ── */
+.page-backdrop__shooting { position: absolute; inset: 0; overflow: hidden; }
+.shoot {
+  position: absolute;
+  width: 180px; height: 2.5px;
+  background: linear-gradient(90deg, rgba(255,255,255,1), rgba(180,220,255,0.4) 40%, rgba(255,255,255,0));
+  border-radius: 3px;
+  opacity: 0;
+  filter: drop-shadow(0 0 8px rgba(180,220,255,0.9));
+  transform: rotate(20deg);
+}
+.shoot::after {
+  content: ""; position: absolute; right: 0; top: -2px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 12px 3px rgba(190,225,255,0.95);
+}
+@keyframes bd-shoot {
+  0%   { opacity: 0; transform: rotate(20deg) translateX(-40px) scale(0.6); }
+  4%   { opacity: 1; }
+  40%  { opacity: 1; }
+  55%  { opacity: 0; transform: rotate(20deg) translateX(460px) scale(1); }
+  100% { opacity: 0; transform: rotate(20deg) translateX(460px) scale(1); }
+}
+.shoot--1 { top: 14%; left: 6%;  animation: bd-shoot 5s ease-in 0.8s infinite; }
+.shoot--2 { top: 30%; left: 58%; animation: bd-shoot 6s ease-in 2.4s infinite; }
+.shoot--3 { top: 52%; left: 18%; animation: bd-shoot 5.5s ease-in 4s infinite; }
+.shoot--4 { top: 68%; left: 66%; animation: bd-shoot 6.5s ease-in 5.5s infinite; }
+.shoot--5 { top: 42%; left: 38%; animation: bd-shoot 5s ease-in 7s infinite; }
+.shoot--6 { top: 80%; left: 30%; animation: bd-shoot 6s ease-in 9s infinite; }
+.page-backdrop__nebula {
+  position: absolute;
+  inset: -10%;
+  background:
+    radial-gradient(34% 28% at 14% 16%, rgba(79, 209, 197, 0.18), transparent 70%),
+    radial-gradient(40% 32% at 86% 30%, rgba(139, 92, 246, 0.20), transparent 70%),
+    radial-gradient(44% 34% at 30% 64%, rgba(96, 165, 250, 0.16), transparent 72%),
+    radial-gradient(38% 30% at 76% 82%, rgba(167, 139, 250, 0.14), transparent 72%),
+    radial-gradient(28% 22% at 58% 44%, rgba(251, 191, 36, 0.06), transparent 70%);
+  filter: blur(26px);
+  animation: bd-drift 40s ease-in-out infinite alternate;
+}
+.page-backdrop__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(5, 7, 12, 0.55) 100%);
+}
+@keyframes bd-twinkle {
+  0%, 100% { opacity: var(--from, 0.3); }
+  50%      { opacity: 0.9; }
+}
+@keyframes bd-drift {
+  0%   { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+  100% { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-backdrop__nebula { animation: none; }
+  .page-backdrop__stars circle { animation: none !important; }
+  .page-backdrop__stars--a, .page-backdrop__stars--b { animation: none !important; }
+}
+
+/* Translucent dark wash → backdrop + aurora bleed through ~70%, text legible.
+   Lower alpha = richer sky showing through every section. */
+.prob, .how, .ben, .priv, .cta {
+  background: transparent !important;
+}
+.pr {
+  background:
+    linear-gradient(180deg, rgba(79, 209, 197, 0.06), transparent 26%) !important;
+}
+
+/* ════════════════════════════════════════════
+   SHOWCASE SECTIONS — dramatic gradient blooms (Concepts / Problem / Privacy)
+   Layered aurora-color radials over a translucent navy wash so these sections
+   feel like the hero's night sky rather than flat dark panels.
+   ════════════════════════════════════════════ */
+.cc, .prob, .rights { position: relative; background: transparent !important; }
+/* Soft drifting nebula sheen layered on top of the gradient */
+.cc::before, .prob::before, .rights::before {
+.cc::before, .prob::before, .rights::before { content: none; }
+.cc > .hp-container,
+.prob > .hp-container,
+.rights > .hp-container { position: relative; z-index: 1; }
+
+/* ───────── Hero → page seam: melt the scene bottom into the sky ─────────
+   A tall gradient fades the opaque hero scenes down into the page bg so the
+   mountains dissolve instead of hitting a hard horizontal cut. */
+.stage--embedded::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 34%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(10, 14, 26, 0.0) 30%,
+    rgba(9, 12, 22, 0.55) 72%,
+    rgba(7, 9, 15, 0.92) 100%);
+  pointer-events: none;
+  z-index: 30;     /* above scenes(0)/aurora(45)? keep below nav(50) & title(30) */
+}
+
+/* Reverse melt: device section top rises out of the dark with a faint glow */
+.pr::after { content: none; }
+.pr__pin { z-index: 1; }
+.pr__head, .pr__stage, .pr__progress { position: relative; z-index: 1; }
+/* Footer grounds the page with a denser base */
+.hp-footer { background: rgba(6, 8, 15, 0.82); }
+
+@media (max-width: 767px) {
+  .pr { height: auto; }
+  .pr__pin { position: relative; height: auto; min-height: 100vh; }
+  /* On mobile, show all callouts stacked below device for legibility */
+  .pr__stage { flex-direction: column; gap: var(--space-8); padding-block: var(--space-10); }
+  .callout {
+    position: relative; top: auto; right: auto; left: auto;
+    opacity: 1; transform: none; pointer-events: auto;
+    width: 100%; justify-content: center;
+  }
+  .callout--left, .callout--right { flex-direction: row; right: auto; left: auto; text-align: left; }
+  .callout--left .callout__head { flex-direction: row; }
+  .callout__line, .callout__node { display: none; }
+  .callout__card { width: min(92vw, 360px); }
+  .pr__progress { display: none; }
+  .hp-footer__legal { flex-direction: column; }
+  .hp-footer__copy { white-space: normal; }
+}
+
+</style>
+  <style data-from="sa-pk/reflection.css">
+/* ════════════════════════════════════════════
+   PROJECT REFLECTION
+   ════════════════════════════════════════════ */
+.refl { padding-block: clamp(64px, 10vh, 120px); }
+.refl__head { max-width: 640px; margin-inline: auto; text-align: center; opacity: 0; transform: translateY(20px); transition: opacity var(--dur-story) var(--ease-out), transform var(--dur-story) var(--ease-out); }
+.refl__head.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .refl__head { opacity: 1 !important; transform: none !important; } }
+
+.refl__grid {
+  margin-top: clamp(36px, 5vh, 56px);
+  display: flex; flex-direction: column; gap: clamp(28px, 4vh, 48px);
+  max-width: 760px; margin-inline: auto;
+}
+
+/* Journey timeline */
+.refl__journey { display: flex; flex-direction: column; gap: 0; position: relative; }
+.refl__step {
+  display: grid; grid-template-columns: 52px 1fr; gap: var(--space-5);
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--color-border);
+}
+.refl__step:first-child { border-top: 0; padding-top: 0; }
+.refl__step-n {
+  font: var(--fw-regular) 15px/1 'Bruno Ace', var(--font-sans);
+  color: var(--color-accent); letter-spacing: 0.08em;
+  padding-top: 4px;
+}
+.refl__step-t { font: var(--fw-bold) clamp(18px, 2vw, 22px) var(--font-sans); color: var(--color-text); }
+.refl__step-d { margin-top: var(--space-2); font-size: var(--fs-body); line-height: var(--lh-relaxed); color: var(--color-text); opacity: 0.92; word-break: keep-all; }
+
+/* Side: stack + learnings */
+.refl__side { display: flex; flex-direction: column; gap: var(--space-8); }
+.refl__side-h {
+  font: var(--fw-semibold) var(--fs-body-sm)/1 var(--font-mono);
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-accent);
+  margin-bottom: var(--space-4);
+}
+.refl__stack, .refl__learned {
+  border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  background: rgba(16,20,36,0.96);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.refl__stack-list { display: flex; flex-direction: column; gap: 0; }
+.refl__stack-row {
+  display: grid; grid-template-columns: 84px 1fr; gap: var(--space-4);
+  padding: var(--space-3) 0; border-top: 1px solid var(--color-border);
+  align-items: baseline;
+}
+.refl__stack-row:first-child { border-top: 0; padding-top: 0; }
+.refl__stack-k { font: var(--fw-semibold) var(--fs-caption) var(--font-mono); letter-spacing: 0.06em; color: var(--color-accent); text-transform: uppercase; }
+.refl__stack-v { font-size: var(--fs-body-sm); color: var(--color-text); opacity: 0.9; line-height: 1.45; word-break: keep-all; }
+.refl__learned-list { display: flex; flex-direction: column; gap: var(--space-4); }
+.refl__learned-item {
+  position: relative; padding-left: var(--space-5);
+  font-size: var(--fs-body); line-height: var(--lh-relaxed); color: var(--color-text); opacity: 0.92; word-break: keep-all;
+}
+.refl__learned-item::before {
+  content: ""; position: absolute; left: 0; top: 9px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-accent); box-shadow: 0 0 8px var(--color-accent);
+}
+
+@media (max-width: 1023px) {
+  .refl__grid { gap: var(--space-8); }
+}
+
+/* Role + result metrics */
+.refl__top {
+  margin-top: clamp(36px, 5vh, 56px);
+  max-width: 760px; margin-inline: auto;
+  display: flex; flex-direction: column; gap: var(--space-6);
+}
+.refl__role {
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-6); background: rgba(16,20,36,0.96);
+}
+.refl__role-row {
+  display: grid; grid-template-columns: 64px 1fr; gap: var(--space-4);
+  padding: var(--space-3) 0; border-top: 1px solid var(--color-border); align-items: baseline;
+}
+.refl__role-row:first-child { border-top: 0; padding-top: 0; }
+.refl__role-k { font: var(--fw-semibold) var(--fs-caption) var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); }
+.refl__role-v { font-size: var(--fs-body-sm); color: var(--color-text); opacity: 0.92; word-break: keep-all; }
+.refl__metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3);
+}
+.refl__metric {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-5); background: rgba(16,20,36,0.96);
+  display: flex; flex-direction: column; gap: var(--space-2);
+}
+.refl__metric-n {
+  font: var(--fw-black) clamp(24px, 3vw, 34px)/1 var(--font-sans);
+  color: var(--color-text); letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+}
+.refl__metric-n em { font-style: normal; font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); color: var(--color-accent); margin-left: 4px; }
+.refl__metric-d { font-size: var(--fs-caption); line-height: 1.45; color: var(--color-text-secondary); word-break: keep-all; }
+
+/* Troubleshooting */
+.refl__trouble {
+  margin-top: clamp(32px, 5vh, 48px);
+  max-width: 760px; margin-inline: auto;
+}
+.refl__trouble-list { display: flex; flex-direction: column; gap: var(--space-4); }
+.refl__trouble-item {
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6); background: rgba(16,20,36,0.96);
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.refl__trouble-p, .refl__trouble-s {
+  display: flex; gap: var(--space-3); align-items: baseline;
+  font-size: var(--fs-body-sm); line-height: var(--lh-relaxed); word-break: keep-all;
+}
+.refl__trouble-p { color: var(--color-text); font-weight: var(--fw-semibold); }
+.refl__trouble-s { color: var(--color-text-secondary); }
+.refl__trouble-tag {
+  flex-shrink: 0; padding: 3px 9px; border-radius: var(--radius-full);
+  font: var(--fw-bold) 11px/1.4 var(--font-mono); letter-spacing: 0.04em;
+  background: rgba(255,107,107,0.14); color: var(--color-danger);
+}
+.refl__trouble-tag--ok { background: rgba(16,185,129,0.14); color: var(--color-success); }
+
+@media (max-width: 680px) {
+  .refl__metrics { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Theme toggle button (Project Story page) */
+.story-theme-toggle {
+  padding: 8px 14px; border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+  background: transparent; color: var(--color-text);
+  font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans);
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-smooth), border-color var(--dur-fast) var(--ease-smooth);
+}
+.story-theme-toggle:hover { background: var(--color-surface-elevated); border-color: var(--color-accent); }
+.story-theme-toggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* Light mode: lift the page off the dark night-sky into a soft daylight gradient
+   so text contrast is high and the invert reads cleanly. */
+[data-theme="light"] body {
+  background:
+    radial-gradient(150% 95% at 18% -8%, #dbe7fb 0%, transparent 46%),
+    radial-gradient(125% 82% at 88% 6%, #e7defb 0%, transparent 44%),
+    linear-gradient(180deg, #f4f7fc 0%, #eef2fa 100%) !important;
+}
+[data-theme="light"] .sa-grain { opacity: 0.02; mix-blend-mode: multiply; }
+[data-theme="light"] .page-backdrop { opacity: 0.35; }
+[data-theme="light"] .refl__stack,
+[data-theme="light"] .refl__learned { background: rgba(255,255,255,0.7); }
+[data-theme="light"] .story-theme-toggle { color: var(--color-text); }
+
+/* Project Story header — logo + back button */
+.story-logo { display: inline-flex; align-items: center; gap: var(--space-3); text-decoration: none; }
+.story-logo__mark { width: 30px; height: 30px; flex-shrink: 0; }
+.story-logo__word {
+  font: var(--fw-regular) 16px/1 'Bruno Ace', var(--font-sans);
+  letter-spacing: 0.14em; color: var(--color-text);
+}
+.story-back-btn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 10px 20px; border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans);
+  text-decoration: none; white-space: nowrap;
+  transition: transform var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth), border-color var(--dur-fast) var(--ease-smooth);
+}
+.story-back-btn:hover { transform: translateY(-1px); background: var(--color-surface-elevated); border-color: var(--color-accent); }
+.story-back-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.story-back-btn__arrow { font-size: 15px; transition: transform var(--dur-fast) var(--ease-smooth); }
+.story-back-btn:hover .story-back-btn__arrow { transform: translateX(-3px); }
+@media (max-width: 560px) {
+  .story-logo__word { display: none; }
+  .story-back-btn { padding: 9px 16px; }
+}
+
+</style>
+</head>
+<body data-screen-label="Project Story">
+  <div class="sa-grain" aria-hidden="true"></div>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" data-from="engine.jsx">
+/* eslint-disable */
+/* sa-pk/engine.jsx — Viewport scaler, step state, auto-advance, drag, keyboard */
+
+const { useState, useEffect, useRef, useCallback, useMemo, useLayoutEffect } = React;
+
+const BASE_W = 1440;
+const BASE_H = 1080;
+const STAGE_COUNT = 5;
+
+/* prefers-reduced-motion */
+const usePrefersReducedMotion = () => {
+  const [reduced, setReduced] = useState(
+    () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  useEffect(() => {
+    if (typeof matchMedia === 'undefined') return;
+    const mq = matchMedia('(prefers-reduced-motion: reduce)');
+    const on = (e) => setReduced(e.matches);
+    mq.addEventListener?.('change', on);
+    return () => mq.removeEventListener?.('change', on);
+  }, []);
+  return reduced;
+};
+
+/* Responsive viewport scale — 1440×1080 canvas scaled to fit, centered.
+   Desktop uses 'contain' (letterbox), tablet/mobile use 'cover' (crop). */
+const useViewportScale = () => {
+  const getLayout = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return { s: 1, cW: BASE_W, cH: BASE_H, vw: BASE_W, vh: BASE_H, isMobile: false, isTablet: false, isDesktop: true };
+    }
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isMobile = vw <= 768;
+    const isTablet = vw > 768 && vw <= 1024;
+    const isDesktop = vw > 1024;
+    const s = isDesktop ? Math.min(vw / BASE_W, vh / BASE_H) : Math.max(vw / BASE_W, vh / BASE_H);
+    return { s, cW: BASE_W * s, cH: BASE_H * s, vw, vh, isMobile, isTablet, isDesktop };
+  }, []);
+  const [layout, setLayout] = useState(getLayout);
+  useEffect(() => {
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setLayout(getLayout()));
+    };
+    setLayout(getLayout());
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, [getLayout]);
+  return layout;
+};
+
+/* Step state + auto-advance + pause-on-hover + safety unpause */
+const STEP_STORAGE_KEY = 'sa-pk-step';
+const useStepEngine = ({ autoAdvanceMs, paused, setPaused }) => {
+  const [step, setStep] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+    const stored = parseInt(localStorage.getItem(STEP_STORAGE_KEY) || '1', 10);
+    return Math.min(Math.max(1, stored), STAGE_COUNT) || 1;
+  });
+  // Persist step across reloads (also enables external test harnesses to seed state)
+  useEffect(() => {
+    try { localStorage.setItem(STEP_STORAGE_KEY, String(step)); } catch (e) {}
+  }, [step]);
+  const [progress, setProgress] = useState(0);
+  const reduced = usePrefersReducedMotion();
+
+  const goNext = useCallback(() => setStep((p) => (p < STAGE_COUNT ? p + 1 : 1)), []);
+  const goPrev = useCallback(() => setStep((p) => (p > 1 ? p - 1 : STAGE_COUNT)), []);
+  const goTo   = useCallback((n) => setStep(Math.min(Math.max(1, n), STAGE_COUNT)), []);
+
+  // Auto-advance + progress bar
+  useEffect(() => {
+    if (paused) return;
+    if (reduced) return; // honor reduced motion — no auto cycle
+    let raf = 0;
+    let t0 = performance.now();
+    const tick = (now) => {
+      const k = Math.min(1, (now - t0) / autoAdvanceMs);
+      setProgress(k);
+      if (k >= 1) {
+        goNext();
+        t0 = performance.now();
+        setProgress(0);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [paused, reduced, autoAdvanceMs, goNext, step]);
+
+  // Reset progress on manual step change
+  useEffect(() => { setProgress(0); }, [step]);
+
+  // Keyboard navigation (desktop)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goPrev(); }
+      else if (e.key >= '1' && e.key <= '5') { e.preventDefault(); goTo(parseInt(e.key, 10)); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [goNext, goPrev, goTo]);
+
+  // Safety: if paused for >10s, force unpause (mirrors Punchi-Kun)
+  const lastPauseRef = useRef(Date.now());
+  useEffect(() => {
+    if (paused) lastPauseRef.current = Date.now();
+    if (!paused) return;
+    const t = setTimeout(() => {
+      if (paused && Date.now() - lastPauseRef.current > 10000) setPaused(false);
+    }, 10000);
+    return () => clearTimeout(t);
+  }, [paused, setPaused]);
+
+  return { step, progress, goNext, goPrev, goTo };
+};
+
+/* Drag-to-swipe horizontal — pointer events on the canvas */
+const useSwipe = (onLeft, onRight, threshold = 60) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let startX = 0, dragging = false;
+    const onDown = (e) => {
+      // Only respond to primary button / single touch
+      if (e.button !== undefined && e.button !== 0) return;
+      dragging = true;
+      startX = (e.touches?.[0]?.clientX ?? e.clientX) || 0;
+    };
+    const onMove = (e) => {
+      if (!dragging) return;
+      // prevent text selection while dragging
+    };
+    const onUp = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      const endX = (e.changedTouches?.[0]?.clientX ?? e.clientX) || 0;
+      const dx = endX - startX;
+      if (dx > threshold) onRight?.();
+      else if (dx < -threshold) onLeft?.();
+    };
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
+    };
+  }, [onLeft, onRight, threshold]);
+  return ref;
+};
+
+/* Stage definitions — single source of truth for all 5 scenes */
+const STAGES = [
+  {
+    id: 'awake', num: '01', short: 'Awake',
+    title: 'The day fades.',
+    sub:   ['Lights ', 'dim.'],
+    korean: '체온이 0.3℃ 내려가고, 조명이 따뜻한 호박빛으로 가라앉습니다.',
+    meta: { temp: '24.0°C', humi: '52%', lux: '180 LX', noise: '38 DB' },
+  },
+  {
+    id: 'n1', num: '02', short: 'Drift',
+    title: 'Drifting in.',
+    sub:   ['Muscles ', 'soften.'],
+    korean: '근육이 풀리고 호흡이 느려집니다. 입면까지 평균 9분.',
+    meta: { temp: '22.4°C', humi: '54%', lux: '12 LX', noise: '32 DB' },
+  },
+  {
+    id: 'n2', num: '03', short: 'Sink',
+    title: 'Going deeper.',
+    sub:   ['Spindles ', 'appear.'],
+    korean: '수면 방추파가 나타나고, 체온이 가장 빠르게 떨어집니다.',
+    meta: { temp: '21.8°C', humi: '55%', lux: '0 LX', noise: '28 DB' },
+  },
+  {
+    id: 'n3', num: '04', short: 'Still',
+    title: 'Stillness.',
+    sub:   ['Body ', 'restores.'],
+    korean: '깊은 수면. 성장호르몬이 분비되고 면역이 회복됩니다.',
+    meta: { temp: '21.2°C', humi: '55%', lux: '0 LX', noise: '24 DB' },
+  },
+  {
+    id: 'rem', num: '05', short: 'Dream',
+    title: 'Dreaming.',
+    sub:   ['Memory ', 'reorders.'],
+    korean: 'REM 단계. 안구가 움직이고 기억이 정리됩니다.',
+    meta: { temp: '21.6°C', humi: '54%', lux: '0 LX', noise: '26 DB' },
+  },
+];
+
+/* Oval orbit positions — 5 nodes around an ellipse, currentStep at apex.
+   Mirrors Punchi-Kun's "wheel" rotation: positions array rotates by currentStep. */
+const ORBIT_POSITIONS = [
+  { x: 0,    y: 8   },  // top (current)
+  { x: 201,  y: 55  },  // top-right
+  { x: 300,  y: 202 },  // bottom-right
+  { x: -300, y: 202 },  // bottom-left
+  { x: -197, y: 55  },  // top-left
+];
+
+const positionForOrbit = (slotIdx, currentStep) => {
+  // slotIdx is 0..4 (a stage's home slot)
+  // We want stage = currentStep-1 to sit at index 0 (top)
+  const rotated = ((slotIdx - (currentStep - 1)) + STAGE_COUNT) % STAGE_COUNT;
+  return ORBIT_POSITIONS[rotated];
+};
+
+/* Export to window */
+Object.assign(window, {
+  BASE_W, BASE_H, STAGE_COUNT, STAGES, ORBIT_POSITIONS, positionForOrbit,
+  useViewportScale, useStepEngine, useSwipe, usePrefersReducedMotion,
+});
+
+</script>
+  <script type="text/babel" data-from="page-backdrop.jsx">
+/* eslint-disable */
+/* sa-pk/page-backdrop.jsx — One continuous night sky behind the WHOLE page.
+   Fixed, full-viewport, z-index -2 (below the aurora at -1). It carries the same
+   stars + soft nebula the hero scenes use, so scrolling from the hero into the
+   narrative never hits a "flat dark" wall — the sky is the through-line.
+
+   Pure SVG, deterministic, no per-frame work (one slow CSS twinkle only). */
+
+const BackdropStars = ({ count, seed, rMax = 1.7, opacityMin = 0.25 }) => {
+  const stars = useMemo(() => {
+    const out = [];
+    let s = seed * 9301 + 49297;
+    const r = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    for (let i = 0; i < count; i++) {
+      out.push({
+        x: +(r() * 100).toFixed(2),
+        y: +(r() * 100).toFixed(2),
+        rad: +(0.4 + r() * rMax).toFixed(2),
+        op: +(opacityMin + r() * (1 - opacityMin)).toFixed(2),
+        tw: +(2.5 + r() * 4).toFixed(2),
+        delay: +(r() * 4).toFixed(2),
+      });
+    }
+    return out;
+  }, [count, seed, rMax, opacityMin]);
+  return (
+    <>
+      {stars.map((st, i) => (
+        <circle
+          key={i}
+          cx={`${st.x}%`} cy={`${st.y}%`} r={st.rad}
+          fill="#F5F7FA" opacity={st.op}
+          style={{ animation: `bd-twinkle ${st.tw}s var(--ease-smooth) ${st.delay}s infinite` }}
+        />
+      ))}
+    </>
+  );
+};
+
+const PageBackdrop = () => {
+  const reduced = usePrefersReducedMotion();
+  return (
+    <React.Fragment>
+      <div className="page-backdrop" aria-hidden="true">
+        {/* Nebula blooms behind everything */}
+        <div className="page-backdrop__nebula" />
+        <div className="page-backdrop__vignette" />
+      </div>
+      {/* Stars + shooting stars, always rendered. The opaque hero scene covers
+          them on screen 1; transparent sections reveal them from screen 2 on. */}
+      <div className="starfield" aria-hidden="true">
+        <svg className="page-backdrop__stars page-backdrop__stars--a" preserveAspectRatio="none">
+          <BackdropStars count={reduced ? 90 : 170} seed={7} rMax={2.2} opacityMin={0.5} />
+        </svg>
+        <svg className="page-backdrop__stars page-backdrop__stars--b" preserveAspectRatio="none">
+          <BackdropStars count={reduced ? 30 : 70} seed={13} rMax={1.3} opacityMin={0.32} />
+        </svg>
+        {!reduced && (
+          <div className="page-backdrop__shooting">
+            <span className="shoot shoot--1" />
+            <span className="shoot shoot--2" />
+          </div>
+        )}
+      </div>
+    </React.Fragment>
+  );
+};
+
+Object.assign(window, { PageBackdrop, BackdropStars });
+
+</script>
+  <script type="text/babel" data-from="reveal.jsx">
+/* eslint-disable */
+/* sa-pk/reveal.jsx — Scroll-reveal helpers for the long-scroll narrative.
+   - useReveal: fires once when an element enters view (drives fade-up).
+   - useScrollProgress: 0→1 as a tall section scrolls through the viewport,
+     used by the sticky product-reveal section to stage callouts one by one.
+   - Reveal: wrapper that applies a staggered fade-up to its children. */
+
+/* In-view detector — bidirectional, scroll-driven (deterministic across
+   browsers/harnesses): true while the element's top band is in the viewport,
+   false once it leaves. Reveals on scroll-down, un-reveals on scroll-up. */
+const useReveal = (opts = {}) => {
+  const ref = useRef(null);
+  const [seen, setSeen] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  useEffect(() => {
+    if (!ref.current) return;
+    if (reduced) { setSeen(true); return; }
+    let raf = 0;
+    const check = () => {
+      const el = ref.current; if (!el) return;
+      const vh = window.innerHeight || 800;
+      const r = el.getBoundingClientRect();
+      setSeen(r.top < vh * 0.9 && r.bottom > vh * 0.04);
+    };
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(check); };
+    check();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(raf); };
+  }, [reduced]);
+  return [ref, seen];
+};
+
+/* 0→1 progress as a tall element scrolls from entering to leaving the viewport.
+   progress 0 = element top hits viewport bottom; 1 = element bottom hits viewport top.
+   We clamp to the "pinned" window so the sticky child gets a clean 0..1. */
+const useScrollProgress = (ref) => {
+  const [p, setP] = useState(0);
+  const reduced = usePrefersReducedMotion();
+  useEffect(() => {
+    if (!ref.current) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = ref.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const vh = window.innerHeight || 800;
+        // total scrollable distance for this section = its height - one viewport
+        const total = r.height - vh;
+        const scrolled = -r.top;
+        const k = total > 0 ? Math.min(1, Math.max(0, scrolled / total)) : (r.top < vh * 0.5 ? 1 : 0);
+        setP(k);
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+  // reduced motion → treat as fully revealed once mounted near view
+  return reduced ? 1 : p;
+};
+
+/* Staggered fade-up wrapper. Children get sequential delays once revealed. */
+const Reveal = ({ children, as: As = 'div', className = '', stagger = 90, threshold, ...rest }) => {
+  const [ref, seen] = useReveal({ threshold });
+  return (
+    <As ref={ref} className={`reveal ${seen ? 'is-in' : ''} ${className}`} {...rest}>
+      {React.Children.map(children, (child, i) =>
+        React.isValidElement(child)
+          ? React.cloneElement(child, {
+              style: { ...(child.props.style || {}), '--reveal-delay': `${i * stagger}ms` },
+              className: `reveal__item ${child.props.className || ''}`,
+            })
+          : child
+      )}
+    </As>
+  );
+};
+
+Object.assign(window, { useReveal, useScrollProgress, Reveal });
+
+/* ScrubVideo — a <video> whose currentTime is driven by a 0..1 `progress`.
+   Gives true scroll-scrubbed motion: scroll down → video plays forward, up →
+   reverse. Muted/inline so it can be seeked freely.
+   When `chroma` is set, each frame is drawn to a <canvas> with near-white pixels
+   knocked out to transparent — so a white-background clip floats on the dark page
+   with no white box (option-1 transparent look, done at runtime). */
+const ScrubVideo = ({ src, poster, progress, className = '', alt = '', chroma = false }) => {
+  const ref = useRef(null);
+  const canvasRef = useRef(null);
+  const [blobUrl, setBlobUrl] = useState(null);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const durRef = useRef(0);
+  const reduced = usePrefersReducedMotion();
+
+  // Fetch the file as a blob URL — blob: sources are fully seekable, fixing
+  // MP4s whose currentTime won't move (seekable range empty) when loaded via
+  // a plain relative URL without range support.
+  useEffect(() => {
+    let revoked = null;
+    let alive = true;
+    fetch(src)
+      .then((r) => r.blob())
+      .then((b) => {
+        if (!alive) return;
+        const url = URL.createObjectURL(b);
+        revoked = url;
+        setBlobUrl(url);
+      })
+      .catch(() => { if (alive) setBlobUrl(src); }); // fall back to direct src
+    return () => { alive = false; if (revoked) URL.revokeObjectURL(revoked); };
+  }, [src]);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !blobUrl) return;
+    const onMeta = () => {
+      durRef.current = v.duration || 0;
+      // size the keying canvas to the video (capped for perf)
+      if (canvasRef.current && v.videoWidth) {
+        const cap = 760;
+        const scale = Math.min(1, cap / v.videoWidth);
+        canvasRef.current.width = Math.round(v.videoWidth * scale);
+        canvasRef.current.height = Math.round(v.videoHeight * scale);
+      }
+      setReady(true);
+    };
+    const onErr = () => setFailed(true);
+    v.addEventListener('loadedmetadata', onMeta);
+    v.addEventListener('error', onErr);
+    v.load();
+    // Fallback: if the browser can't decode this codec within 6s, show poster.
+    const t = setTimeout(() => { if (!v.videoWidth) setFailed(true); }, 6000);
+    return () => {
+      v.removeEventListener('loadedmetadata', onMeta);
+      v.removeEventListener('error', onErr);
+      clearTimeout(t);
+    };
+  }, [blobUrl]);
+
+  // Continuously ease the video's currentTime toward the scroll target via rAF,
+  // and (when chroma) draw the current frame to the canvas with white knocked out.
+  const targetRef = useRef(0);
+  useEffect(() => { targetRef.current = Math.max(0, Math.min(1, progress)); }, [progress]);
+
+  useEffect(() => {
+    if (!ready || !durRef.current) return;
+    const v = ref.current;
+    const cv = canvasRef.current;
+    if (!v) return;
+    const ctx = chroma && cv ? cv.getContext('2d', { willReadFrequently: true }) : null;
+    let raf = 0;
+    const dur = durRef.current - 0.05;
+    const FPS = 30;
+    let displayed = v.currentTime;
+    let lastDrawn = -1;
+
+    const keyFrame = () => {
+      if (!ctx) return;
+      // Lazily size the canvas to the video the first time we have dimensions.
+      if (cv.width < 100 && v.videoWidth) {
+        const cap = 760;
+        const scale = Math.min(1, cap / v.videoWidth);
+        cv.width = Math.round(v.videoWidth * scale);
+        cv.height = Math.round(v.videoHeight * scale);
+      }
+      const w = cv.width, h = cv.height;
+      if (w < 100) return;
+      try { ctx.drawImage(v, 0, 0, w, h); } catch (e) { return; }
+      let img;
+      try { img = ctx.getImageData(0, 0, w, h); } catch (e) { return; }
+      const d = img.data;
+      // Knock out near-white, low-saturation pixels (the studio backdrop).
+      // Robot keeps its shape: colored accents are saturated, the face is dark,
+      // and the cream body stays because we only fully cut pixels above ~248.
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        const mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        const mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        const sat = mx - mn;
+        const warm = r - b;           // beige backdrop is warm: R > B
+        // Background = warm, mid-bright, low-saturation beige. The robot's dark
+        // face (low mx), teal accents (b≥r → warm≤0) and neutral highlights
+        // (warm≈0) all survive; only the beige studio sweep is cut.
+        if (mx > 95 && warm >= 16 && sat < 64) {
+          // ramp alpha by how strongly "beige" the pixel is
+          const a = Math.max(0, Math.min(255, (40 - warm) * 12));
+          d[i + 3] = a;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+    };
+
+    const tick = () => {
+      if (!reduced) {
+        const targetT = targetRef.current * dur;
+        const gap = targetT - displayed;
+        const absGap = Math.abs(gap);
+        // Large jump (fast scroll): snap straight to target so we never lag.
+        // Small gap: ease for smoothness.
+        if (absGap > 0.4) {
+          displayed = targetT;
+        } else {
+          const k = 0.12 + Math.min(0.18, absGap * 0.08);
+          displayed += gap * k;
+        }
+        const quantized = Math.round(displayed * FPS) / FPS;
+        // Only request a new seek when the decoder is idle — issuing a seek
+        // while v.seeking is true gets dropped by the browser and freezes the
+        // frame on fast scrubs.
+        if (!v.seeking && Math.abs(v.currentTime - quantized) >= 1 / FPS) {
+          try { v.currentTime = quantized; } catch (e) {}
+        }
+      }
+      // redraw the keyed frame whenever the shown time changed
+      if (ctx && Math.abs(v.currentTime - lastDrawn) >= 0.5 / FPS) {
+        keyFrame();
+        lastDrawn = v.currentTime;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    // draw once the first frame is decodable
+    const onSeeked = () => keyFrame();
+    v.addEventListener('seeked', onSeeked);
+    v.addEventListener('loadeddata', onSeeked);
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      v.removeEventListener('seeked', onSeeked);
+      v.removeEventListener('loadeddata', onSeeked);
+    };
+  }, [ready, reduced, chroma]);
+
+  if (chroma) {
+    return (
+      <span className="scrubv">
+        {!failed && (
+          <video
+            ref={ref}
+            src={blobUrl || undefined}
+            muted playsInline preload="auto" tabIndex={-1}
+            className="scrubv__video"
+            aria-hidden="true"
+          />
+        )}
+        {failed
+          ? <img src={poster} className={`scrubv__canvas ${className}`} alt={alt} />
+          : <canvas ref={canvasRef} className={`scrubv__canvas ${className}`} role="img" aria-label={alt} />
+        }
+      </span>
+    );
+  }
+
+  return (
+    <video
+      ref={ref}
+      className={className}
+      src={blobUrl || undefined}
+      poster={poster}
+      muted
+      playsInline
+      preload="auto"
+      aria-label={alt}
+      tabIndex={-1}
+    />
+  );
+};
+
+Object.assign(window, { ScrubVideo });
+
+</script>
+  <script type="text/babel" data-from="reflection.jsx">
+/* eslint-disable */
+/* sa-pk/reflection.jsx — Student portfolio reflection: role, concrete results,
+   real troubleshooting, stack, and lessons. First-person, specific. */
+
+const ROLE = [
+  { k: '담당', v: '기획 · 디자인 · 프론트엔드 개발 1인 전담' },
+  { k: '기간', v: '컨셉 정의 → 구현 → 반복 개선 (단독 진행)' },
+  { k: '범위', v: '13개 섹션 long-scroll · 실시간 DB · 모달 · 반응형' },
+];
+
+const RESULTS = [
+  { n: '13', u: '개 섹션', d: '히어로부터 갤러리까지 단일 페이지 내러티브' },
+  { n: '6', u: '종 센서', d: '추상적 AI 파이프라인을 시각화한 인터랙션' },
+  { n: '0', u: '외부 의존 백엔드', d: 'Firebase Firestore로 사전예약 실시간 등록·집계' },
+  { n: '100%', u: 'WebP', d: '이미지 전량 최적화로 로딩 지연 최소화' },
+];
+
+const JOURNEY = [
+  {
+    n: '01', t: '문제 정의',
+    d: '가정 내 기기가 수면 단계를 모른 채 시간표로만 동작한다는 점에서 출발해, "단계별 환경 자동 제어"라는 한 문장으로 제품을 정의했습니다. 이 문장이 전체 정보 구조의 기준이 됐습니다.',
+  },
+  {
+    n: '02', t: '정보 구조 설계',
+    d: '스펙 나열 대신 잠드는 순간부터 깨는 순간까지의 흐름을 따라가도록 13개 섹션의 순서를 직접 설계하고, 사용자 피드백을 받아 스펙·비교·프라이버시 섹션 위치를 여러 차례 재배치했습니다.',
+  },
+  {
+    n: '03', t: '인터랙션 구현',
+    d: '센서 콜아웃·Before/After 슬라이더·AI 데이터 플로우·스크롤 스크럽 로봇 등으로 보이지 않는 기술을 눈에 보이게 만들었습니다. 모든 모션은 transform·opacity 기반으로 성능을 고려했습니다.',
+  },
+  {
+    n: '04', t: '실시간 기능 연동',
+    d: 'Firebase Firestore를 붙여 사전예약 이메일을 실제로 등록하고, onSnapshot으로 신청 인원을 실시간 집계해 표시했습니다. 정규식 검증·전송 상태·에러 처리까지 폼 UX를 완성했습니다.',
+  },
+];
+
+const TROUBLE = [
+  {
+    p: '영상이 스크롤에 반응하지 않음',
+    s: 'MP4가 탐색 불가(seekable 범위 0) 상태로 로드되는 문제를 발견. 파일을 blob URL로 불러와 전 구간 탐색이 가능하게 바꿔 스크롤 스크럽을 구현했습니다.',
+  },
+  {
+    p: '밤하늘 별이 보이지 않음',
+    s: '여러 변수를 좁혀가며 진단한 결과, 별 SVG는 정상 렌더링되지만 음수 z-index가 body 배경 뒤로 묻히는 CSS 함정이 원인임을 확인. z-index 레이어링을 명시적으로 재설계해 해결했습니다.',
+  },
+  {
+    p: '섹션 사이 경계선·별의 카드 통과',
+    s: '섹션별 배경 농도 차이가 만든 단차와, 반투명 카드로 별이 비치던 문제를 각각 배경 투명화·카드 불투명화로 분리 해결했습니다.',
+  },
+];
+
+const STACK = [
+  { k: 'Frontend', v: 'React 18 · 컴포넌트 기반 long-scroll UI' },
+  { k: '실시간 DB', v: 'Firebase Firestore (사전예약 등록·실시간 집계)' },
+  { k: '모션', v: 'IntersectionObserver · rAF 스크롤 스크럽 · CSS 트랜지션' },
+  { k: '디자인', v: '디자인 토큰 · Pretendard · 반응형 clamp 타이포' },
+  { k: '접근성', v: 'WCAG 키보드 내비 · prefers-reduced-motion · 캐러셀 일시정지' },
+  { k: 'SEO·성능', v: 'Open Graph · JSON-LD(Product·FAQ) · WebP 최적화' },
+];
+
+const LEARNED = [
+  '추상적인 AI 기능을 사용자가 "느낄 수 있는" 시각 언어로 번역하는 과정이 가장 어려웠고, 가장 많이 배웠습니다.',
+  '버그는 추측이 아니라 변수를 하나씩 좁히는 진단으로 풀린다는 것 — 별 z-index 문제를 통해 체득했습니다.',
+  '실시간 DB·접근성·SEO처럼 "보이지 않는" 요소가 완성도를 좌우한다는 것을 직접 구현하며 이해했습니다.',
+];
+
+const Reflection = () => {
+  const [head, seen] = useReveal({ threshold: 0.25 });
+  return (
+    <section id="reflection" className="refl" data-screen-label="12 Reflection">
+      <div className="hp-container">
+        <div ref={head} className={`refl__head ${seen ? 'is-in' : ''}`}>
+          <p className="eyebrow">PROJECT STORY</p>
+          <h2 className="hp-h2">만들면서 배운 것.</h2>
+          <p className="hp-sub">로봇소프트웨어과 포트폴리오 프로젝트로, 기획·디자인·개발을 1인 전담했습니다. 아래는 실제로 맡은 역할과 성과, 그리고 직접 해결한 문제들입니다.</p>
+        </div>
+
+        {/* Role + result metrics */}
+        <Reveal className="refl__top" stagger={80}>
+          <ul className="refl__role">
+            {ROLE.map((r) => (
+              <li key={r.k} className="refl__role-row">
+                <span className="refl__role-k">{r.k}</span>
+                <span className="refl__role-v">{r.v}</span>
+              </li>
+            ))}
+          </ul>
+          <ul className="refl__metrics">
+            {RESULTS.map((m, i) => (
+              <li key={i} className="refl__metric">
+                <span className="refl__metric-n">{m.n}<em>{m.u}</em></span>
+                <span className="refl__metric-d">{m.d}</span>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <div className="refl__grid">
+          {/* Journey timeline */}
+          <Reveal as="ol" className="refl__journey" stagger={90}>
+            {JOURNEY.map((j) => (
+              <li key={j.n} className="refl__step">
+                <span className="refl__step-n">{j.n}</span>
+                <div>
+                  <h3 className="refl__step-t">{j.t}</h3>
+                  <p className="refl__step-d">{j.d}</p>
+                </div>
+              </li>
+            ))}
+          </Reveal>
+
+          {/* Stack */}
+          <div className="refl__side">
+            <Reveal className="refl__stack" stagger={60}>
+              <h3 className="refl__side-h">사용 기술</h3>
+              <ul className="refl__stack-list">
+                {STACK.map((s) => (
+                  <li key={s.k} className="refl__stack-row">
+                    <span className="refl__stack-k">{s.k}</span>
+                    <span className="refl__stack-v">{s.v}</span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          </div>
+        </div>
+
+        {/* Troubleshooting — concrete problem → solution */}
+        <Reveal className="refl__trouble" stagger={90}>
+          <h3 className="refl__side-h">직접 해결한 문제</h3>
+          <ul className="refl__trouble-list">
+            {TROUBLE.map((t, i) => (
+              <li key={i} className="refl__trouble-item">
+                <div className="refl__trouble-p"><span className="refl__trouble-tag">문제</span>{t.p}</div>
+                <div className="refl__trouble-s"><span className="refl__trouble-tag refl__trouble-tag--ok">해결</span>{t.s}</div>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  );
+};
+
+Object.assign(window, { Reflection });
+
+</script>
+  <script type="text/babel" data-from="story-app.jsx">
+/* eslint-disable */
+/* sa-pk/story-app.jsx — Standalone Project Story page: backdrop + minimal header
+   (links back to home) + the Reflection section + a small footer. */
+
+const StoryHeader = () => {
+  useEffect(() => {
+    // Project Story is dark-only now (light/invert mode removed).
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }, []);
+  return (
+    <header className="site-nav is-scrolled">
+      <div className="site-nav__inner">
+        <a className="site-nav__logo story-logo" href="index.html" aria-label="Sleep Architect 홈으로">
+          <svg className="story-logo__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="15" stroke="var(--color-accent)" strokeWidth="1.5" opacity="0.5" />
+            <path d="M9 19c3 0 4-6 7-6s4 6 7 6" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="16" cy="11" r="2" fill="var(--color-accent)" />
+          </svg>
+          <span className="story-logo__word">SLEEP&nbsp;ARCHITECT</span>
+        </a>
+        <div className="site-nav__right" style={{ marginLeft: 'auto' }}>
+          <a
+            href="index.html"
+            className="story-back-btn"
+          >
+            <span className="story-back-btn__arrow" aria-hidden="true">←</span>
+            홈페이지로 돌아가기
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+const StoryApp = () => (
+  <React.Fragment>
+    <a href="#reflection" className="sa-skip">본문 바로가기</a>
+    <PageBackdrop />
+    <StoryHeader />
+    <main className="story-main">
+      <Reflection />
+    </main>
+    <footer className="hp-footer">
+      <div className="hp-container hp-footer__legal">
+        <p>본 페이지는 로봇소프트웨어과 포트폴리오 프로젝트의 회고입니다. 제품은 컨셉 단계이며 의료기기가 아닙니다.</p>
+        <p className="hp-footer__copy">© 2026 Sleep Architect · 학생 포트폴리오 프로젝트</p>
+      </div>
+    </footer>
+  </React.Fragment>
+);
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<StoryApp />);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+/* ════════════════════════════════════════════
+   SITE-WIDE SCROLL FX (helloup-style reveals)
+   ════════════════════════════════════════════ */
+
+/* Image clip-reveal: wipes up + settles from a slight zoom */
+.fx-img {
+  clip-path: inset(14% 0 14% 0 round var(--radius-lg, 16px));
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    clip-path 900ms var(--ease-out),
+    opacity 700ms var(--ease-out),
+    transform 1100ms var(--ease-out);
+  will-change: clip-path, transform, opacity;
+}
+.fx-img.fx-in {
+  clip-path: inset(0 0 0 0 round var(--radius-lg, 16px));
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Headline word-rise: each word lifts + un-blurs, staggered by --w */
+.fx-words .fx-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.6em);
+  filter: blur(6px);
+  transition:
+    opacity 560ms var(--ease-out),
+    transform 640ms var(--ease-out),
+    filter 560ms var(--ease-out);
+  transition-delay: calc(var(--w, 0) * 55ms);
+  will-change: transform, opacity, filter;
+}
+.fx-words.fx-in .fx-word {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Block slide-up (cards, panels) */
+.fx-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 640ms var(--ease-out),
+    transform 760ms var(--ease-out);
+  will-change: transform, opacity;
+}
+.fx-up.fx-in { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-img, .fx-words .fx-word, .fx-up {
+    opacity: 1 !important; transform: none !important; filter: none !important;
+    clip-path: none !important; transition: none !important;
+  }
+}

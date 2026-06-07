@@ -1,0 +1,132 @@
+/* ════════════════════════════════════════════
+   HOW IT WORKS — animated data flow
+   ════════════════════════════════════════════ */
+.how2 { padding-block: clamp(96px, 16vh, 200px); }
+.how2__head { max-width: 680px; opacity: 0; transform: translateY(20px); transition: opacity var(--dur-story) var(--ease-out), transform var(--dur-story) var(--ease-out); }
+.how2__head.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .how2__head { opacity: 1 !important; transform: none !important; } }
+
+.how2__phases {
+  display: flex;
+  gap: clamp(20px, 4vw, 48px);
+  justify-content: center;
+  margin-top: clamp(32px, 5vh, 56px);
+  flex-wrap: wrap;
+}
+.how2__phase { display: inline-flex; align-items: center; gap: var(--space-2); opacity: 0.4; transition: opacity 700ms var(--ease-smooth); }
+.how2__phase.is-active { opacity: 1; }
+.how2__phase.is-done { opacity: 0.5; }
+.how2__phase-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--color-text-muted);
+  background: transparent;
+  transition: border-color 600ms var(--ease-smooth), background 600ms var(--ease-smooth), box-shadow 600ms var(--ease-smooth);
+}
+.how2__phase.is-active .how2__phase-dot { border-color: var(--color-accent); background: var(--color-accent); box-shadow: 0 0 14px var(--color-accent); animation: how2-pulse 1.6s ease-in-out infinite; }
+/* Passed phases: dot goes back to unlit (no persistent green) so only the
+   currently-active phase is illuminated. */
+.how2__phase.is-done .how2__phase-dot { border-color: var(--color-border-strong); background: transparent; box-shadow: none; animation: none; }
+.how2__phase-label { font: var(--fw-semibold) var(--fs-body-sm) 'Bruno Ace', var(--font-sans); letter-spacing: 0.04em; }
+.how2__phase.is-active .how2__phase-label { color: var(--color-accent); }
+@keyframes how2-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .how2__phase-dot { animation: none !important; } }
+
+.how2__flow {
+  position: relative;
+  margin-top: clamp(40px, 6vh, 72px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: clamp(16px, 3vw, 48px);
+  align-items: center;
+}
+.how2__wires { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.how2__wire { opacity: 0.4; transition: opacity 700ms var(--ease-smooth); }
+.how2__wire.is-live { opacity: 1; filter: drop-shadow(0 0 4px rgba(79,209,197,0.6)); }
+
+.how2__panel {
+  position: relative; z-index: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), transparent 40%), rgba(16,20,36,0.96);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: border-color var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+}
+.how2__panel { transition: border-color 700ms var(--ease-smooth), box-shadow 700ms var(--ease-smooth); }
+.how2__panel.is-active { border-color: rgba(79,209,197,0.5); box-shadow: 0 0 28px rgba(79,209,197,0.12); }
+.how2__panel-h {
+  font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono);
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-muted);
+  margin-bottom: var(--space-5); text-align: center;
+}
+.how2__cards { display: grid; gap: var(--space-2); }
+.how2__card {
+  display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(10,14,26,0.4);
+  transition:
+    border-color 600ms var(--ease-smooth) var(--d, 0ms),
+    background 600ms var(--ease-smooth) var(--d, 0ms),
+    transform 600ms var(--ease-spring) var(--d, 0ms);
+}
+.how2__card.is-lit {
+  border-color: var(--c);
+  background: color-mix(in oklab, var(--c) 12%, rgba(10,14,26,0.5));
+  transform: translateX(3px);
+}
+.how2__card-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); opacity: 0.4; transition: opacity 600ms var(--ease-smooth) var(--d, 0ms), box-shadow 600ms var(--ease-smooth) var(--d, 0ms); }
+.how2__card.is-lit .how2__card-dot { opacity: 1; box-shadow: 0 0 14px var(--c); animation: df-card-dot 2s var(--ease-smooth) infinite; }
+@keyframes df-card-dot { 0%,100% { box-shadow: 0 0 10px var(--c); } 50% { box-shadow: 0 0 18px var(--c); } }
+@media (prefers-reduced-motion: reduce) { .how2__card-dot { animation: none !important; } }
+.how2__card-k { font: var(--fw-semibold) var(--fs-body-sm) var(--font-sans); color: var(--color-text); }
+.how2__card-v { font: var(--fw-medium) var(--fs-caption) var(--font-mono); color: var(--color-text-secondary); font-variant-numeric: tabular-nums; }
+.how2__card-check { color: var(--color-success); font-size: 13px; opacity: 0; transform: scale(0.4); transition: opacity 500ms var(--ease-smooth), transform 500ms var(--ease-spring); }
+.how2__card--ctrl.is-lit .how2__card-check { opacity: 1; transform: scale(1); transition-delay: calc(var(--d) + 240ms); }
+
+.how2__brain-wrap { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+.how2__brain {
+  position: relative;
+  width: 168px; height: 168px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #131829, #0A0E1A);
+  border: 2px solid var(--color-border-strong);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
+  transition: border-color 700ms var(--ease-smooth), box-shadow 700ms var(--ease-smooth);
+  animation: df-brain-breathe 5.5s var(--ease-smooth) infinite;
+}
+@keyframes df-brain-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+.how2__brain.is-processing {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 50px rgba(79,209,197,0.35), inset 0 0 24px rgba(79,209,197,0.12);
+}
+@media (prefers-reduced-motion: reduce) { .how2__brain { animation: none; } }
+.how2__brain-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.how2__brain-label { position: relative; z-index: 2; text-align: center; }
+.how2__brain-title { display: block; font: var(--fw-bold) 18px 'Bruno Ace', var(--font-sans); color: var(--color-text); }
+.how2__brain-sub { display: block; margin-top: 4px; font: var(--fw-medium) 11px var(--font-mono); letter-spacing: 0.06em; color: var(--color-text-muted); }
+@keyframes df-node { 0%,100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.4); opacity: 1; } }
+
+/* Directional arrows in the gap between panels and the brain.
+   Static glyphs with a gentle nudge — no particle ever overlaps a card or the brain. */
+.how2__arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  font: 700 22px/1 var(--font-sans);
+  color: var(--color-accent);
+  opacity: 0.7;
+  text-shadow: 0 0 12px rgba(79,209,197,0.5);
+  pointer-events: none;
+}
+.how2__arrow--in  { right: 100%; margin-right: 6px; animation: df-nudge-r 2.4s var(--ease-smooth) infinite; }
+.how2__arrow--out { left: 100%;  margin-left: 6px;  animation: df-nudge-r 2.4s var(--ease-smooth) 0.4s infinite; }
+@keyframes df-nudge-r { 0%,100% { transform: translateY(-50%) translateX(0); opacity: 0.55; } 50% { transform: translateY(-50%) translateX(4px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .how2__arrow { animation: none !important; } }
+
+@media (max-width: 1023px) {
+  .how2__flow { grid-template-columns: 1fr; gap: var(--space-8); }
+  .how2__wires { display: none; }
+  .how2__flow-dots { display: none; }
+  .how2__brain-wrap { order: -1; }
+}
