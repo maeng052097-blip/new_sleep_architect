@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>자유 게시판 — Sleep Architect</title>
+  <meta name="description" content="Sleep Architect 사용자들이 수면 이야기를 나누는 자유 게시판. 글을 쓰고, 추천하고, 댓글로 의견을 나눠 보세요." />
+  <meta name="robots" content="noindex, follow" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bruno+Ace&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="tokens.css" />
+
+  <style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  button { font-family: inherit; }
+
+  /* ───────── Night-sky backdrop ───────── */
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% -10%, rgba(79,209,197,0.16), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 85% 8%, rgba(139,92,246,0.18), transparent 62%),
+      radial-gradient(ellipse 80% 60% at 12% 92%, rgba(96,165,250,0.12), transparent 60%),
+      linear-gradient(180deg, #0B1022 0%, #0A0E1A 45%, #0C1226 100%);
+  }
+  .bg__stars { position: absolute; inset: 0; }
+  .bg__stars circle { fill: #fff; }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background-image: var(--grain-svg); background-size: 180px 180px;
+    opacity: var(--grain-opacity); mix-blend-mode: overlay;
+  }
+
+  /* ───────── Header ───────── */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    height: var(--nav-h, 64px);
+    display: flex; align-items: center;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .nav__inner {
+    width: 100%; max-width: var(--container-max); margin: 0 auto;
+    padding-inline: var(--container-pad);
+    display: flex; align-items: center; gap: var(--space-4);
+  }
+  .logo { display: inline-flex; align-items: center; gap: var(--space-3); text-decoration: none; }
+  .logo__mark { width: 28px; height: 28px; flex-shrink: 0; }
+  .logo__word { font: var(--fw-regular) 15px/1 'Bruno Ace', var(--font-sans); letter-spacing: 0.14em; color: var(--color-text); }
+  .back {
+    margin-left: auto; display: inline-flex; align-items: center; gap: var(--space-2);
+    padding: 9px 18px; border-radius: var(--radius-full);
+    background: var(--color-surface); border: 1px solid var(--color-border-strong);
+    color: var(--color-text); text-decoration: none; font-size: var(--fs-body-sm); font-weight: var(--fw-medium);
+    transition: transform var(--dur-fast) var(--ease-smooth), border-color var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth);
+  }
+  .back:hover { transform: translateY(-1px); border-color: var(--color-accent); background: var(--color-surface-elevated); }
+  .back:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .back__arrow { transition: transform var(--dur-fast) var(--ease-smooth); }
+  .back:hover .back__arrow { transform: translateX(-3px); }
+  @media (max-width: 520px) { .logo__word { display: none; } }
+
+  /* ───────── Layout ───────── */
+  .wrap { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: clamp(40px,7vh,88px) var(--container-pad) 120px; }
+  .eyebrow {
+    font: var(--fw-semibold) var(--fs-caption)/1 'Bruno Ace', var(--font-mono);
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--color-accent); display: inline-block; }
+  .page-title {
+    margin: var(--space-4) 0 var(--space-3);
+    font-size: var(--fs-display-2); font-weight: var(--fw-black); letter-spacing: var(--ls-tight);
+    line-height: var(--lh-tight); text-wrap: balance;
+  }
+  .page-sub { color: var(--color-text-secondary); font-size: var(--fs-body); line-height: var(--lh-relaxed); max-width: 60ch; text-wrap: pretty; }
+  .stat-row { display: flex; gap: var(--space-6); margin-top: var(--space-6); flex-wrap: wrap; }
+  .stat { display: flex; align-items: baseline; gap: 8px; }
+  .stat b { font-family: var(--font-mono); font-size: var(--fs-heading-2); color: var(--color-text); font-variant-numeric: tabular-nums; }
+  .stat span { font-size: var(--fs-body-sm); color: var(--color-text-muted); }
+
+  /* ───────── Composer ───────── */
+  .composer {
+    margin-top: var(--space-10);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, var(--color-accent) 4%), var(--color-surface));
+    border: 1px solid var(--color-border); border-radius: var(--radius-xl);
+    padding: clamp(20px,3vw,32px);
+    position: relative; overflow: hidden;
+  }
+  .composer::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, var(--color-accent), transparent); opacity: 0.6; }
+  .composer h2 { margin: 0 0 var(--space-2); font-size: var(--fs-heading-2); font-weight: var(--fw-bold); }
+  .composer p.hint { margin: 0 0 var(--space-5); font-size: var(--fs-body-sm); color: var(--color-text-muted); }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-4); }
+  .field label { font-size: var(--fs-caption); font-weight: var(--fw-semibold); color: var(--color-text-secondary); letter-spacing: 0.02em; }
+  .row2 { display: grid; grid-template-columns: 1fr 160px; gap: var(--space-4); }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+  .input, .textarea {
+    width: 100%; background: var(--color-bg); color: var(--color-text);
+    border: 1px solid var(--color-border-strong); border-radius: var(--radius-md);
+    padding: 12px 14px; font-size: var(--fs-body); font-family: inherit;
+    transition: border-color var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
+  }
+  .textarea { resize: vertical; min-height: 96px; line-height: var(--lh-normal); }
+  .input::placeholder, .textarea::placeholder { color: var(--color-text-muted); }
+  .input:focus, .textarea:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-soft); }
+  .composer__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-2); flex-wrap: wrap; }
+  .composer__note { font-size: var(--fs-caption); color: var(--color-text-muted); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    border-radius: var(--radius-md); border: 1px solid transparent;
+    padding: 11px 22px; font-size: var(--fs-body-sm); font-weight: var(--fw-semibold);
+    transition: transform var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
+  }
+  .btn--primary { background: var(--color-accent); color: var(--color-text-on-accent); }
+  .btn--primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); background: var(--color-accent-hover); }
+  .btn--primary:active { transform: scale(0.98); }
+  .btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ───────── Toolbar ───────── */
+  .toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin: var(--space-12) 0 var(--space-5); flex-wrap: wrap; }
+  .toolbar h3 { margin: 0; font-size: var(--fs-heading-3); font-weight: var(--fw-bold); }
+  .toolbar h3 b { color: var(--color-accent); font-variant-numeric: tabular-nums; }
+  .sort { display: inline-flex; gap: 4px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-full); padding: 4px; }
+  .sort button {
+    border: none; background: transparent; color: var(--color-text-secondary);
+    padding: 7px 16px; border-radius: var(--radius-full); cursor: pointer; font-size: var(--fs-body-sm); font-weight: var(--fw-medium);
+    transition: color var(--dur-fast), background var(--dur-fast);
+  }
+  .sort button[aria-pressed="true"] { background: var(--color-accent-soft); color: var(--color-accent); }
+  .sort button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  /* ───────── Post card ───────── */
+  .posts { display: flex; flex-direction: column; gap: var(--space-5); }
+  .post {
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+    padding: clamp(18px,2.4vw,26px);
+    transition: border-color var(--dur-base) var(--ease-smooth), transform var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+  }
+  .post:hover { transform: translateY(-3px); border-color: var(--color-border-strong); box-shadow: var(--shadow-soft); }
+  .post__head { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+  .avatar { width: 38px; height: 38px; flex-shrink: 0; border-radius: var(--radius-full); display: grid; place-items: center; font-weight: var(--fw-bold); font-size: 15px; color: var(--color-bg); }
+  .post__meta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .post__author { font-weight: var(--fw-semibold); font-size: var(--fs-body-sm); }
+  .post__time { font-size: var(--fs-caption); color: var(--color-text-muted); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .post__del {
+    margin-left: auto; background: transparent; border: 1px solid var(--color-border); color: var(--color-text-muted);
+    width: 30px; height: 30px; border-radius: var(--radius-full); cursor: pointer; flex-shrink: 0;
+    display: grid; place-items: center; transition: color var(--dur-fast), border-color var(--dur-fast);
+  }
+  .post__del:hover { color: var(--color-danger); border-color: var(--color-danger); }
+  .post__del:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .post__title { margin: 0 0 6px; font-size: var(--fs-heading-3); font-weight: var(--fw-bold); line-height: var(--lh-snug); }
+  .post__body { margin: 0; color: var(--color-text-secondary); font-size: var(--fs-body); line-height: var(--lh-relaxed); white-space: pre-wrap; text-wrap: pretty; }
+  .post__actions { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-5); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    background: var(--color-bg); border: 1px solid var(--color-border-strong); color: var(--color-text-secondary);
+    padding: 8px 14px; border-radius: var(--radius-full); font-size: var(--fs-body-sm); font-weight: var(--fw-medium);
+    transition: transform var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  }
+  .chip:hover { transform: translateY(-1px); border-color: var(--color-accent); color: var(--color-text); }
+  .chip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  .chip b { font-variant-numeric: tabular-nums; }
+  .chip--rec.is-voted { color: var(--color-accent); border-color: var(--color-accent); background: var(--color-accent-soft); }
+  .chip--rec.is-voted .heart { fill: var(--color-accent); stroke: var(--color-accent); }
+  .heart { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: fill var(--dur-fast), transform var(--dur-base) var(--ease-spring); }
+  .chip--rec:active .heart { transform: scale(1.35); }
+
+  /* ───────── Comments ───────── */
+  .comments { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px dashed var(--color-border); display: none; }
+  .post.is-open .comments { display: block; }
+  .comment { display: flex; gap: var(--space-3); padding: var(--space-3) 0; }
+  .comment + .comment { border-top: 1px solid var(--color-border); }
+  .comment__av { width: 28px; height: 28px; flex-shrink: 0; border-radius: var(--radius-full); display: grid; place-items: center; font-size: 12px; font-weight: var(--fw-bold); color: var(--color-bg); }
+  .comment__main { min-width: 0; }
+  .comment__top { display: flex; align-items: baseline; gap: 8px; }
+  .comment__author { font-weight: var(--fw-semibold); font-size: var(--fs-body-sm); }
+  .comment__time { font-size: 11px; color: var(--color-text-muted); font-family: var(--font-mono); }
+  .comment__text { margin: 2px 0 0; font-size: var(--fs-body-sm); color: var(--color-text-secondary); line-height: var(--lh-normal); white-space: pre-wrap; }
+  .cform { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+  .cform input { flex: 1; min-width: 0; background: var(--color-bg); color: var(--color-text); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-body-sm); font-family: inherit; }
+  .cform input:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-soft); }
+  .cform .cname { flex: 0 0 110px; }
+  .cform button { flex-shrink: 0; background: var(--color-surface-elevated); border: 1px solid var(--color-border-strong); color: var(--color-text); border-radius: var(--radius-md); padding: 0 16px; cursor: pointer; font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); transition: border-color var(--dur-fast), color var(--dur-fast); }
+  .cform button:hover { border-color: var(--color-accent); color: var(--color-accent); }
+  .cform button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+  @media (max-width: 560px) { .cform { flex-wrap: wrap; } .cform .cname { flex: 1 1 100%; } }
+
+  /* ───────── States ───────── */
+  .empty, .loading { text-align: center; padding: var(--space-16) var(--space-4); color: var(--color-text-muted); }
+  .empty svg { opacity: 0.5; margin-bottom: var(--space-4); }
+  .banner { margin-top: var(--space-5); padding: 12px 16px; border-radius: var(--radius-md); font-size: var(--fs-body-sm); border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-secondary); display: none; }
+  .banner.is-on { display: block; }
+  .banner b { color: var(--color-warning); }
+
+  .reveal { transform: translateY(14px); transition: transform var(--dur-slow) var(--ease-out); }
+  .reveal.is-in { transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { transform: none !important; } .heart, .post, .chip, .btn { transition: none !important; } }
+
+  .footer { position: relative; z-index: 1; text-align: center; padding: var(--space-12) var(--container-pad); color: var(--color-text-muted); font-size: var(--fs-caption); border-top: 1px solid var(--color-border); }
+  </style>
+</head>
+<body data-screen-label="자유 게시판">
+  <div class="bg" aria-hidden="true">
+    <svg class="bg__stars" id="stars" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="nav__inner">
+      <a class="logo" href="index.html" aria-label="Sleep Architect 홈으로">
+        <svg class="logo__mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="15" stroke="var(--color-accent)" stroke-width="1.5" opacity="0.5" />
+          <path d="M9 19c3 0 4-6 7-6s4 6 7 6" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" />
+          <circle cx="16" cy="11" r="2" fill="var(--color-accent)" />
+        </svg>
+        <span class="logo__word">SLEEP&nbsp;ARCHITECT</span>
+      </a>
+      <a class="back" href="index.html"><span class="back__arrow" aria-hidden="true">←</span>홈페이지로 돌아가기</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="reveal" id="introBlock">
+      <p class="eyebrow">COMMUNITY</p>
+      <h1 class="page-title">자유 게시판.</h1>
+      <p class="page-sub">Sleep Architect를 쓰며 달라진 밤을 자유롭게 나누는 공간입니다. 글을 남기고, 마음에 드는 글을 추천하고, 댓글로 이야기를 이어가 보세요.</p>
+      <div class="stat-row">
+        <div class="stat"><b id="statPosts">0</b><span>개의 글</span></div>
+        <div class="stat"><b id="statRecs">0</b><span>번의 추천</span></div>
+        <div class="stat"><b id="statComments">0</b><span>개의 댓글</span></div>
+      </div>
+      <div class="banner" id="banner"><b>오프라인 데모 모드</b> — 서버에 연결할 수 없어 이 브라우저에만 글이 저장됩니다. 작성·추천·댓글은 정상 동작합니다.</div>
+    </div>
+
+    <!-- Composer -->
+    <section class="composer reveal" id="composer" aria-label="새 글 작성">
+      <h2>새 글 쓰기</h2>
+      <p class="hint">닉네임으로 자유롭게 작성할 수 있어요. 비밀번호는 내가 쓴 글을 지울 때만 쓰입니다.</p>
+      <div class="field">
+        <label for="f-title">제목</label>
+        <input class="input" id="f-title" maxlength="60" placeholder="예) 새벽에 깨는 일이 줄었어요" />
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="f-author">닉네임</label>
+          <input class="input" id="f-author" maxlength="16" placeholder="잠 못 드는 양" />
+        </div>
+        <div class="field">
+          <label for="f-pin">비밀번호 (숫자 4자리)</label>
+          <input class="input" id="f-pin" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="0000" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-body">내용</label>
+        <textarea class="textarea" id="f-body" maxlength="1000" placeholder="어떤 점이 좋았는지, 궁금한 점은 무엇인지 편하게 적어 주세요."></textarea>
+      </div>
+      <div class="composer__foot">
+        <span class="composer__note">서로를 존중하는 말투로 작성해 주세요. 광고·욕설은 삭제될 수 있습니다.</span>
+        <button class="btn btn--primary" id="submitPost">글 등록하기</button>
+      </div>
+    </section>
+
+    <!-- Toolbar -->
+    <div class="toolbar reveal">
+      <h3>전체 글 <b id="countLabel">0</b></h3>
+      <div class="sort" role="group" aria-label="정렬">
+        <button id="sortNew" aria-pressed="true">최신순</button>
+        <button id="sortRec" aria-pressed="false">추천순</button>
+      </div>
+    </div>
+
+    <div class="posts" id="posts"></div>
+    <div class="loading" id="loading">불러오는 중…</div>
+  </main>
+
+  <footer class="footer">© 2026 Sleep Architect · 자유 게시판은 학생 포트폴리오 데모입니다. 개인정보·민감정보는 작성하지 마세요.</footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+  /* ════════════════════════ Starfield ════════════════════════ */
+  (function () {
+    const svg = document.getElementById('stars');
+    const W = 1440, H = 900;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    let s = 9301, rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    let html = '';
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    for (let i = 0; i < 150; i++) {
+      const x = (rnd() * W).toFixed(0), y = (rnd() * H).toFixed(0);
+      const r = (rnd() * 1.4 + 0.3).toFixed(2), o = (rnd() * 0.6 + 0.2).toFixed(2);
+      const dur = (rnd() * 4 + 3).toFixed(1), delay = (rnd() * 5).toFixed(1);
+      const anim = reduced ? '' : `<animate attributeName="opacity" values="${o};${(o*0.25).toFixed(2)};${o}" dur="${dur}s" begin="${delay}s" repeatCount="indefinite"/>`;
+      html += `<circle cx="${x}" cy="${y}" r="${r}" opacity="${o}">${anim}</circle>`;
+    }
+    svg.innerHTML = html;
+  })();
+
+  /* ════════════════════════ Firebase init ════════════════════════ */
+  let DB = null, FieldValue = null, MODE = 'local';
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyDgEfo1l0iUyupX1Q9h3v3RcEx5i9iuWKk",
+      authDomain: "sar-website-4eb65.firebaseapp.com",
+      projectId: "sar-website-4eb65",
+      storageBucket: "sar-website-4eb65.firebasestorage.app",
+      messagingSenderId: "227287090173",
+      appId: "1:227287090173:web:d250413a58afd9074d0f94",
+      measurementId: "G-JRHVW47WQW"
+    });
+    DB = firebase.firestore();
+    FieldValue = firebase.firestore.FieldValue;
+    MODE = 'firebase';
+  } catch (e) { MODE = 'local'; }
+
+  const COLL = 'board_posts';
+  const LS_KEY = 'sa_board_posts_v1';
+  const VOTED_KEY = 'sa_board_voted_v1';
+
+  /* ════════════════════════ Seed examples ════════════════════════ */
+  const now = Date.now();
+  const min = 60000, hr = 60 * min, day = 24 * hr;
+  const SEED = [
+    {
+      title: '새벽 3시에 깨던 게 거의 사라졌어요',
+      author: '잠 못 드는 양',
+      body: '원래 매일 새벽 3시쯤 한 번씩 깨서 다시 잠들기까지 30분은 걸렸는데,\nN3 단계에서 온도를 1도 낮춰주는 설정을 켜두니까 확실히 덜 깨네요.\n2주 정도 써보고 적는 후기입니다.',
+      recommends: 14, createdAt: now - 2 * hr,
+      comments: [
+        { author: '올빼미', body: '저도 그 설정 궁금했는데 후기 감사해요!', createdAt: now - 90 * min },
+        { author: '운영자', body: '도움이 되셨다니 다행입니다. 새벽 각성은 온도 영향이 큰 편이에요.', createdAt: now - 40 * min },
+      ],
+    },
+    {
+      title: '코골이 알림, 다들 어떻게 활용하세요?',
+      author: '깊은밤',
+      body: '코골이 구간을 자동으로 기록해주던데, 옆에서 자는 사람한테 보여주기 좋더라고요.\n혹시 알림 너무 자주 오면 민감도 조절하는 법 아시는 분?',
+      recommends: 6, createdAt: now - 8 * hr,
+      comments: [
+        { author: '잠탱이', body: '앱 > 환경설정 > 감지 민감도에서 낮음으로 바꾸면 줄어요.', createdAt: now - 7 * hr },
+      ],
+    },
+    {
+      title: '원룸인데 컴팩트 모델로 충분할까요?',
+      author: '자취3년차',
+      body: '6평 원룸이고 침대랑 책상이 붙어 있는 구조예요.\n스탠다드까지는 필요 없을 것 같은데 컴팩트로도 방 전체 온습도 감지가 되나요?',
+      recommends: 3, createdAt: now - 1 * day,
+      comments: [],
+    },
+    {
+      title: '입면 시간 진짜 줄어드는 거 맞네요',
+      author: '불면탈출',
+      body: '예민해서 잠드는 데 보통 40분 넘게 걸렸는데,\n조명을 단계적으로 어둡게 해주는 기능 덕분인지 요즘은 20분 안쪽이에요.\n작은 차이 같아도 매일이면 큰 차이더라고요.',
+      recommends: 21, createdAt: now - 2 * day,
+      comments: [
+        { author: '밤샘노동자', body: '오 저랑 비슷한 케이스네요. 한번 써봐야겠어요.', createdAt: now - 2 * day + 3 * hr },
+        { author: '구름위', body: '조명 단계 조절이 생각보다 체감이 커요 ㅋㅋ', createdAt: now - 1 * day - 2 * hr },
+      ],
+    },
+  ];
+
+  /* ════════════════════════ Store (firebase | local) ════════════════════════ */
+  const votedSet = new Set(JSON.parse(localStorage.getItem(VOTED_KEY) || '[]'));
+  const saveVoted = () => localStorage.setItem(VOTED_KEY, JSON.stringify([...votedSet]));
+
+  function lsRead() { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { return null; } }
+  function lsWrite(arr) { localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+  const Store = {
+    async init(onData) {
+      this.onData = onData;
+      if (MODE === 'firebase') {
+        try {
+          // Seed if empty (first visitor only).
+          const snap = await DB.collection(COLL).limit(1).get();
+          if (snap.empty) {
+            for (const p of SEED) {
+              await DB.collection(COLL).add({
+                title: p.title, author: p.author, body: p.body,
+                recommends: p.recommends, pin: '',
+                comments: p.comments.map(c => ({ ...c })),
+                createdAt: p.createdAt,
+              });
+            }
+          }
+          DB.collection(COLL).orderBy('createdAt', 'desc').onSnapshot(
+            (s) => {
+              const rows = [];
+              s.forEach(d => rows.push({ id: d.id, ...d.data() }));
+              onData(rows);
+            },
+            (err) => { console.warn('snapshot error → local', err && err.message); this.fallbackLocal(); }
+          );
+          return;
+        } catch (e) {
+          console.warn('firebase init read failed → local', e && e.message);
+          this.fallbackLocal();
+          return;
+        }
+      }
+      this.fallbackLocal();
+    },
+    fallbackLocal() {
+      MODE = 'local';
+      document.getElementById('banner').classList.add('is-on');
+      let data = lsRead();
+      if (!data) { data = SEED.map((p, i) => ({ id: 'seed-' + i, ...p })); lsWrite(data); }
+      this._local = data;
+      this._emitLocal();
+    },
+    _emitLocal() { this.onData([...this._local].sort((a, b) => b.createdAt - a.createdAt)); },
+    async addPost(p) {
+      const doc = { title: p.title, author: p.author, body: p.body, pin: p.pin, recommends: 0, comments: [], createdAt: Date.now() };
+      if (MODE === 'firebase') { try { await DB.collection(COLL).add(doc); return; } catch (e) { this.fallbackLocal(); } }
+      this._local.unshift({ id: 'local-' + Date.now(), ...doc }); lsWrite(this._local); this._emitLocal();
+    },
+    async recommend(id) {
+      if (votedSet.has(id)) return;
+      votedSet.add(id); saveVoted();
+      if (MODE === 'firebase') { try { await DB.collection(COLL).doc(id).update({ recommends: FieldValue.increment(1) }); return; } catch (e) { this.fallbackLocal(); } }
+      const p = this._local.find(x => x.id === id); if (p) { p.recommends = (p.recommends || 0) + 1; lsWrite(this._local); this._emitLocal(); }
+    },
+    async addComment(id, c) {
+      if (MODE === 'firebase') { try { await DB.collection(COLL).doc(id).update({ comments: FieldValue.arrayUnion(c) }); return; } catch (e) { this.fallbackLocal(); } }
+      const p = this._local.find(x => x.id === id); if (p) { p.comments = p.comments || []; p.comments.push(c); lsWrite(this._local); this._emitLocal(); }
+    },
+    async deletePost(id, pin) {
+      let post = (this._cache || []).find(x => x.id === id);
+      if (post && post.pin && post.pin !== pin) return false;
+      if (post && !post.pin) return 'seed';
+      if (MODE === 'firebase') { try { await DB.collection(COLL).doc(id).delete(); return true; } catch (e) { this.fallbackLocal(); } }
+      this._local = this._local.filter(x => x.id !== id); lsWrite(this._local); this._emitLocal(); return true;
+    },
+  };
+
+  /* ════════════════════════ Render ════════════════════════ */
+  const PALETTE = ['#4FD1C5', '#60A5FA', '#8B5CF6', '#FBBF24', '#93C5FD', '#10B981', '#FF6B6B'];
+  function colorFor(name) { let h = 0; for (const ch of (name || '익명')) h = (h * 31 + ch.charCodeAt(0)) % 9973; return PALETTE[h % PALETTE.length]; }
+  function initial(name) { const n = (name || '익명').trim(); return n ? n[0].toUpperCase() : '?'; }
+  function esc(s) { return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+  function timeAgo(ts) {
+    const d = Date.now() - ts;
+    if (d < min) return '방금 전';
+    if (d < hr) return Math.floor(d / min) + '분 전';
+    if (d < day) return Math.floor(d / hr) + '시간 전';
+    if (d < 7 * day) return Math.floor(d / day) + '일 전';
+    const dt = new Date(ts); return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(dt.getDate()).padStart(2, '0')}`;
+  }
+
+  let CACHE = [], SORT = 'new', openSet = new Set();
+  const postsEl = document.getElementById('posts');
+  const loadingEl = document.getElementById('loading');
+
+  function render() {
+    Store._cache = CACHE;
+    loadingEl.style.display = 'none';
+    let rows = [...CACHE];
+    if (SORT === 'rec') rows.sort((a, b) => (b.recommends || 0) - (a.recommends || 0) || b.createdAt - a.createdAt);
+    else rows.sort((a, b) => b.createdAt - a.createdAt);
+
+    const totalRecs = CACHE.reduce((s, p) => s + (p.recommends || 0), 0);
+    const totalComments = CACHE.reduce((s, p) => s + ((p.comments || []).length), 0);
+    document.getElementById('statPosts').textContent = CACHE.length;
+    document.getElementById('statRecs').textContent = totalRecs;
+    document.getElementById('statComments').textContent = totalComments;
+    document.getElementById('countLabel').textContent = CACHE.length;
+
+    if (!rows.length) {
+      postsEl.innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>아직 글이 없어요. 첫 글을 남겨 보세요.</p></div>`;
+      return;
+    }
+
+    postsEl.innerHTML = rows.map(p => {
+      const c = colorFor(p.author);
+      const voted = votedSet.has(p.id);
+      const comments = (p.comments || []).slice().sort((a, b) => a.createdAt - b.createdAt);
+      const open = openSet.has(p.id);
+      return `
+      <article class="post ${open ? 'is-open' : ''}" data-id="${p.id}">
+        <div class="post__head">
+          <span class="avatar" style="background:${c}">${esc(initial(p.author))}</span>
+          <div class="post__meta">
+            <span class="post__author">${esc(p.author || '익명')}</span>
+            <span class="post__time">${timeAgo(p.createdAt)}</span>
+          </div>
+          <button class="post__del" data-act="del" aria-label="글 삭제" title="삭제">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6"/></svg>
+          </button>
+        </div>
+        <h4 class="post__title">${esc(p.title)}</h4>
+        <p class="post__body">${esc(p.body)}</p>
+        <div class="post__actions">
+          <button class="chip chip--rec ${voted ? 'is-voted' : ''}" data-act="rec" aria-pressed="${voted}">
+            <svg class="heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            추천 <b>${p.recommends || 0}</b>
+          </button>
+          <button class="chip" data-act="toggle">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            댓글 <b>${comments.length}</b>
+          </button>
+        </div>
+        <div class="comments">
+          ${comments.map(cm => `
+            <div class="comment">
+              <span class="comment__av" style="background:${colorFor(cm.author)}">${esc(initial(cm.author))}</span>
+              <div class="comment__main">
+                <div class="comment__top"><span class="comment__author">${esc(cm.author || '익명')}</span><span class="comment__time">${timeAgo(cm.createdAt)}</span></div>
+                <p class="comment__text">${esc(cm.body)}</p>
+              </div>
+            </div>`).join('')}
+          <div class="cform">
+            <input class="cname" data-cinput="name" maxlength="16" placeholder="닉네임" />
+            <input data-cinput="body" maxlength="200" placeholder="따뜻한 댓글을 남겨 주세요" />
+            <button data-act="comment">등록</button>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+
+  /* ════════════════════════ Events ════════════════════════ */
+  postsEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const art = e.target.closest('.post'); const id = art.dataset.id;
+    const act = btn.dataset.act;
+    if (act === 'rec') {
+      if (votedSet.has(id)) return;
+      await Store.recommend(id);
+    } else if (act === 'toggle') {
+      if (openSet.has(id)) openSet.delete(id); else openSet.add(id);
+      art.classList.toggle('is-open');
+    } else if (act === 'comment') {
+      const name = art.querySelector('[data-cinput="name"]').value.trim();
+      const body = art.querySelector('[data-cinput="body"]').value.trim();
+      if (!body) { art.querySelector('[data-cinput="body"]').focus(); return; }
+      btn.disabled = true;
+      openSet.add(id);
+      await Store.addComment(id, { author: name || '익명', body, createdAt: Date.now() });
+      btn.disabled = false;
+    } else if (act === 'del') {
+      const post = CACHE.find(x => x.id === id);
+      if (post && !post.pin) { alert('예시 글은 삭제할 수 없습니다. 직접 작성한 글만 삭제할 수 있어요.'); return; }
+      const pin = prompt('이 글을 삭제하려면 작성 시 입력한 비밀번호(숫자 4자리)를 입력하세요.');
+      if (pin === null) return;
+      const ok = await Store.deletePost(id, pin.trim());
+      if (ok === false) alert('비밀번호가 일치하지 않습니다.');
+    }
+  });
+
+  // Keep typed comment values across re-renders by delegating focus restore is overkill;
+  // instead, submit clears inputs naturally on re-render. Good enough for demo.
+
+  document.getElementById('submitPost').addEventListener('click', async () => {
+    const title = document.getElementById('f-title').value.trim();
+    const author = document.getElementById('f-author').value.trim();
+    const pin = document.getElementById('f-pin').value.trim();
+    const body = document.getElementById('f-body').value.trim();
+    if (!title) { document.getElementById('f-title').focus(); return; }
+    if (!body) { document.getElementById('f-body').focus(); return; }
+    if (pin && !/^\d{4}$/.test(pin)) { alert('비밀번호는 숫자 4자리로 입력해 주세요. (삭제할 때 필요해요)'); document.getElementById('f-pin').focus(); return; }
+    const btn = document.getElementById('submitPost');
+    btn.disabled = true; btn.textContent = '등록 중…';
+    await Store.addPost({ title, author: author || '익명', pin: pin || '', body });
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-body').value = '';
+    document.getElementById('f-pin').value = '';
+    btn.disabled = false; btn.textContent = '글 등록하기';
+    window.scrollTo({ top: document.querySelector('.toolbar').offsetTop - 80, behavior: 'smooth' });
+  });
+
+  const sortNew = document.getElementById('sortNew'), sortRec = document.getElementById('sortRec');
+  sortNew.addEventListener('click', () => { SORT = 'new'; sortNew.setAttribute('aria-pressed', 'true'); sortRec.setAttribute('aria-pressed', 'false'); render(); });
+  sortRec.addEventListener('click', () => { SORT = 'rec'; sortRec.setAttribute('aria-pressed', 'true'); sortNew.setAttribute('aria-pressed', 'false'); render(); });
+
+  /* ════════════════════════ Boot ════════════════════════ */
+  Store.init((rows) => { CACHE = rows; render(); });
+
+  // Reveal on load
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      setTimeout(() => el.classList.add('is-in'), 80 + i * 90);
+    });
+  });
+  </script>
+</body>
+</html>

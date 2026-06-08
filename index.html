@@ -2722,6 +2722,47 @@ main { position: relative; z-index: 1; }
   .faq__list { padding-top: 0; }
 }
 
+/* Board CTA — sits under the FAQ list (right column) */
+.board-cta {
+  margin-top: var(--space-8);
+  display: flex; align-items: center; gap: clamp(16px, 3vw, 32px);
+  padding: clamp(20px, 3vw, 28px) clamp(22px, 3.4vw, 34px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(79,209,197,0.10), transparent 55%),
+    radial-gradient(120% 140% at 100% 100%, rgba(139,92,246,0.12), transparent 55%),
+    var(--color-surface);
+  text-decoration: none; color: inherit; position: relative; overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-smooth), border-color var(--dur-base) var(--ease-smooth), box-shadow var(--dur-base) var(--ease-smooth);
+}
+.board-cta::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, var(--color-accent), transparent); opacity: 0.55; }
+.board-cta:hover { transform: translateY(-3px); border-color: var(--color-accent); box-shadow: var(--shadow-lifted); }
+.board-cta:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.board-cta__icon {
+  width: 52px; height: 52px; flex-shrink: 0; border-radius: var(--radius-md);
+  display: grid; place-items: center; color: var(--color-accent);
+  background: var(--color-accent-soft); border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+.board-cta__body { flex: 1; min-width: 0; }
+.board-cta__eyebrow { font: var(--fw-semibold) var(--fs-caption)/1 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-accent); }
+.board-cta__title { margin: 6px 0 4px; font-size: var(--fs-heading-3); font-weight: var(--fw-bold); }
+.board-cta__sub { margin: 0; font-size: var(--fs-body-sm); color: var(--color-text-secondary); line-height: var(--lh-normal); }
+.board-cta__go {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 20px; border-radius: var(--radius-full);
+  background: var(--color-accent); color: var(--color-text-on-accent);
+  font-size: var(--fs-body-sm); font-weight: var(--fw-semibold);
+  transition: transform var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth);
+}
+.board-cta:hover .board-cta__go { box-shadow: var(--shadow-glow); }
+.board-cta__go-arrow { transition: transform var(--dur-fast) var(--ease-smooth); }
+.board-cta:hover .board-cta__go-arrow { transform: translateX(3px); }
+@media (max-width: 640px) {
+  .board-cta { flex-wrap: wrap; }
+  .board-cta__go { width: 100%; justify-content: center; }
+}
+
 /* ════════════════════════════════════════════
    DATA RIGHTS / LEGAL
    ════════════════════════════════════════════ */
@@ -3360,7 +3401,7 @@ main { position: relative; z-index: 1; }
 
   <script>
     window.__TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-      "auto_advance": 3500,
+      "auto_advance": 4000,
       "show_drag_hint": true,
       "sensor_pace": "medium"
     }/*EDITMODE-END*/;
@@ -6548,6 +6589,20 @@ const Faq = () => {
         </div>
         <div className="faq__list">
           {FAQS.map((f, i) => <FaqItem key={i} idx={i} {...f} />)}
+          <a className="board-cta" href="board.html" aria-label="자유 게시판으로 이동">
+            <span className="board-cta__icon" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                <path d="M8 9h8M8 13h5" />
+              </svg>
+            </span>
+            <span className="board-cta__body">
+              <span className="board-cta__eyebrow">COMMUNITY</span>
+              <p className="board-cta__title">자유 게시판</p>
+              <p className="board-cta__sub">사용자들의 수면 이야기를 나누고, 글을 쓰고 추천·댓글로 의견을 나눠 보세요.</p>
+            </span>
+            <span className="board-cta__go">자유 게시판 입장<span className="board-cta__go-arrow" aria-hidden="true">→</span></span>
+          </a>
         </div>
       </div>
     </section>
